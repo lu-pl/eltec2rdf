@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any
 from urllib.request import urlretrieve
+from pathlib import Path
 
 import toolz
 
@@ -45,7 +46,7 @@ TEIXPath: Callable[[etree.ElementTree], Any] = partial(
 
 xpath_definitions = {
     "source_author": TEIXPath(xpaths.author_name),
-    "author_id": TEIXPath(xpaths.author_id),
+    "author_gnd_url": TEIXPath(xpaths.author_id),
     "source_title": TEIXPath(xpaths.source_title),
     "source_ref": TEIXPath(xpaths.source_ref)
 }
@@ -100,8 +101,12 @@ class ELTeCBindingsExtractor(collections.UserDict):
                 xpath_definitions
             )
 
+        _eltec_path = Path(self.eltec_url)
         _base_bindings = {
-            "eltec_url": self.eltec_url,
+            "url": self.eltec_url,
+            "file_stem": _eltec_path.stem.lower(),
+            "repo_id": _eltec_path.parts[3].lower(),
+            "author_gnd_id": Path(_xpath_bindings["author_gnd_url"]).stem,
             "other_sources": list(self._get_other_sources(tree))
         }
 
