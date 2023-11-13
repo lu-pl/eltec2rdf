@@ -11,6 +11,7 @@ pygithub = "^2.1.1"
 python-dotenv = "^1.0.0"
 toolz = "^0.12.0"
 lxml = "^4.9.3"
+lodkit = "^0.1.9"
 
 
 [build-system]
