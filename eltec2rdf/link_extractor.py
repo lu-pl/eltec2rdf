@@ -53,7 +53,7 @@ def _get_eltec_corpus_repos() -> Iterator[str]:
             yield repo_name
 
 
-def get_eltec_level1_xml():
+def get_eltec_xml_links() -> Iterator[str]:
     """Get XML file links from level1 folders across all ELTec repos."""
     corpus_repo_names = _get_eltec_corpus_repos()
 
