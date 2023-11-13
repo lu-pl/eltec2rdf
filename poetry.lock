@@ -196,6 +196,20 @@ files = [
 ]
 
 [[package]]
+name = "clisn"
+version = "0.1.2"
+description = ""
+optional = false
+python-versions = ">=3.11,<4.0"
+files = [
+    {file = "clisn-0.1.2-py3-none-any.whl", hash = "sha256:1456db3eb6896c5d1f60462aeb5491066b03c19c502b741830c46c7425baa68e"},
+    {file = "clisn-0.1.2.tar.gz", hash = "sha256:bf2632312a2937e225faed3d2b9cb4e77327777c233e108f2a2964f95fd7934c"},
+]
+
+[package.dependencies]
+rdflib = ">=7.0.0,<8.0.0"
+
+[[package]]
 name = "colorama"
 version = "0.4.6"
 description = "Cross-platform colored terminal text."
@@ -896,4 +910,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "aefbe55d1e98581e15913047002752d63cf53655569241fbf671d68a6039605e"
+content-hash = "1a50816ad7a43937ae375cd793ef448a9f60fe67c8cb0f8e05017cae6226cf68"
