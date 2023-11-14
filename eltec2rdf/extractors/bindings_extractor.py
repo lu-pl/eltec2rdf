@@ -46,7 +46,7 @@ TEIXPath: Callable[[etree.ElementTree], Any] = partial(
 
 xpath_definitions = {
     "source_author": TEIXPath(xpaths.author_name),
-    "author_gnd_url": TEIXPath(xpaths.author_id),
+    "author_id_url": TEIXPath(xpaths.author_id),
     "source_title": TEIXPath(xpaths.source_title),
     "source_ref": TEIXPath(xpaths.source_ref)
 }
@@ -66,7 +66,7 @@ class ELTeCBindingsExtractor(collections.UserDict):
 
         Used for tei:sourceDesc bibls.
         """
-        return re.sub(r"\s{2,}", " ", "".join(bibl))
+        return re.sub(r"\s{2,}", " ", "".join(bibl)).strip()
 
     def _get_other_sources(
             self,
@@ -89,6 +89,30 @@ class ELTeCBindingsExtractor(collections.UserDict):
             elements
         )
 
+    @staticmethod
+    def _get_id_type_dict(ref_id: str) -> Mapping[str, str]:
+        """..."""
+        _pairs = zip(
+            ("id_type", "id_value"),
+            re.split(r"[/:]", ref_id)[-2:]
+        )
+
+        return dict(_pairs)
+
+    def _get_author_ids(self, xpath_result: str) -> list[Mapping]:
+        """..."""
+        _ids = filter(
+            lambda x: x.find("missing") == -1,
+            xpath_result.split(" ")
+        )
+
+        author_ids = [
+            self._get_id_type_dict(_id)
+            for _id in _ids
+        ]
+
+        return author_ids
+
     def _get_bindings(self) -> Mapping:
         """Construct kwarg bindings for RDF generation."""
         _temp_file_name, _ = urlretrieve(self.eltec_url)
@@ -106,7 +130,10 @@ class ELTeCBindingsExtractor(collections.UserDict):
             "url": self.eltec_url,
             "file_stem": _eltec_path.stem.lower(),
             "repo_id": _eltec_path.parts[3].lower(),
-            "author_gnd_id": Path(_xpath_bindings["author_gnd_url"]).stem,
+
+            # "author_id": Path(_xpath_bindings["author_id_url"]).stem,
+            "author_id": self._get_author_ids(_xpath_bindings["author_id_url"]),
+
             "other_sources": list(self._get_other_sources(tree))
         }
 
