@@ -13,7 +13,7 @@ from lodkit.utils import plist
 from rdflib import Literal, URIRef, Namespace
 from rdflib.namespace import RDF, RDFS
 
-from clisn import crm, lrm, crmcls
+from clisn import crm, crmcls, crmdig, lrm, CLSInfraNamespaceManager
 
 
 class ELTeCConverter:
@@ -23,7 +23,6 @@ class ELTeCConverter:
         """Initialize an ELTeCConverter instance."""
         self._eltec_url = eltec_url
         self._graph = Graph()
-
         self.bindings = ELTeCBindingsExtractor(self._eltec_url)
 
     def _get_doc_uris(self) -> Mapping[str, URIRef]:
@@ -71,18 +70,23 @@ class ELTeCConverter:
         return uris
 
     def generate_triples(self) -> Iterator[_Triple]:
-        """Generate triples from an ELTeC resource.
-
-        Bindings are optained by querying the ELTeC source
-        with self._get_bindings.
-        """
+        """Generate triples from an ELTeC resource."""
+        # uri collections
         doc = self._get_doc_uris()
         actor = self._get_actor_uris()
 
-        _author, _title = map(
+        _author, _title, _author_id = map(
             self.bindings.get,
-            ("source_author", "source_title")
+            ("source_author", "source_title", "author_id")
         )
+
+        _sources = self.bindings["other_sources"]
+        print_source = next(
+            source
+            for source in _sources
+            if source["type"] == "printSource"
+        )["title"]
+
         short_ref = f"{_author}: {_title}"
 
         tei_triples = plist(
@@ -96,12 +100,14 @@ class ELTeCConverter:
 
         url_triples = plist(
             doc["url"],
+            (RDF.type, crm["E42_Identifier"]),
             (RDFS.label, Literal(f"Github URL of '{short_ref}'")),
             (crm["P190_has_symbolic_content"], Literal(self._eltec_url))
         )
 
         id_triples = plist(
             doc["doc_id"],
+            (RDF.type, crm["E42_Identifier"]),
             (RDFS.label, Literal(f"ELTeC ID of '{short_ref}'")),
             (
                 crm["P2_has_type"],
@@ -113,25 +119,145 @@ class ELTeCConverter:
             )
         )
 
-        type_triples = ...
+        f1_triples = plist(
+            doc["f1"],
+            (RDF.type, lrm["F1_Work"]),
+            (RDFS.label, Literal(f"{short_ref} [Work]")),
+            (lrm["R3_is_realised_in"], doc["f2"])
+        )
+
+        f2_triples = plist(
+            doc["f2"],
+            (RDF.type, lrm["F2_Expression"]),
+            (RDFS.label, Literal(f"{short_ref} [Expression]"))
+        )
+
+        f3_triples = plist(
+            doc["f3"],
+            # (RDFS.label, Literal("Edition ...")),
+            (RDF.type, lrm["F3_Manifestation"]),
+            (crm["P1_is_identified_by"], crm["f3_e42"]),
+            (lrm["R4_embodies"], doc["f2"])
+        )
+
+        f27_triples = plist(
+            doc["f27"],
+            (RDF.type, lrm["F27_Work_Creation"]),
+            (RDFS.label, Literal(f"Work creation of {short_ref}")),
+            (crm["P14_carried_out_by"], actor["e39"]),
+            (lrm["R16_created"], doc["f1"])
+        )
+
+        f28_triples = plist(
+            doc["f28"],
+            (RDF.type, lrm["F28_Expression_Creation"]),
+            (RDFS.label, Literal(f"Expression creation of '{short_ref}'")),
+            (crm["P14_carried_out_by"], actor["e39"]),
+            (lrm["R17_created"], doc["f2"])
+        )
+
+        actor_triples = plist(
+            actor["e39"],
+            (RDF.type, crm["E39_Actor"]),
+            (RDFS.label, Literal(f"{_author} [Actor]"))
+        )
+
+        actor_gnd_triples = plist(
+            actor["e39_e41"],
+            (RDF.type, crm["E41_Identifier"]),
+            (
+                RDFS.label,
+                Literal(f"GND ID of '{_author}'")),
+            (
+                crm["P190_has_symbolic_content"],
+                Literal(f"{_author_id}")
+            ),
+            (
+                crm["P2_has_type"],
+                URIRef("https://core.clscor.io/entity/type/id/gnd")
+            )
+        )
+
+        d1_triples = plist(
+            doc["d1"],
+            (RDF.type, crmdig["D1_Digital_Object"]),
+            (RDFS.label, Literal(f"Digital Source of '{short_ref}'")),
+            (crm["P1_is_identified_by"], doc["d1_e41"])
+        )
+
+        d1_id_triples = plist(
+            doc["d1_e41"],
+            (RDF.type, crm["E41_Identifier"]),
+            (RDFS.label, Literal(f"Textgrid Identifier of '{short_ref}'")),
+            (
+                crm["P190_has_symbolic_content"],
+                Literal(self.bindings["source_ref"])
+            ),
+            (
+                crm["P2_has_type"],
+                URIRef("https://core.clscor.io/entity/type/id/textgrid")
+            )
+        )
+
+        biblref_triples = plist(
+            doc["f3_e42"],
+            (RDF.type, crm["E42_Appellation"]),
+            (
+                RDFS.label,
+                Literal(
+                    "Bibliographic reference of the origial source "
+                    "as extrated from TEI file"
+                )
+            ),
+            (crm["P190_has_symbolic_content"], Literal(print_source))
+        )
 
         triples = itertools.chain(
             tei_triples,
             url_triples,
-            id_triples
+            id_triples,
+            f1_triples,
+            f2_triples,
+            f3_triples,
+            f27_triples,
+            f28_triples,
+            actor_triples,
+            actor_gnd_triples,
+            d1_triples,
+            d1_id_triples,
+            biblref_triples
         )
 
         yield from triples
 
 
+##################################################
+##################################################
 # adhoc testing
+
 eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU007.xml"
+# eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU002.xml"
+
+# eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-fra/master/level1/FRA00401_Allais.xml"
+
+## errors
+# eltec_url = "https://github.com/COST-ELTeC/ELTeC-fra/blob/master/level1/FRA00301_Aimard.xml"
+
 converter = ELTeCConverter(eltec_url)
 
-x = converter.generate_triples()
-g = Graph()
+import json
+d = converter.bindings
+print(json.dumps(dict(d), indent=4))
+# print(converter.bindings)
 
-for i in x:
-    g.add(i)
 
-print(g.serialize())
+
+
+# triples = converter.generate_triples()
+# graph = Graph()
+# CLSInfraNamespaceManager(graph)
+
+# for triple in triples:
+#     graph.add(triple)
+
+# print(graph.serialize())
