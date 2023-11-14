@@ -33,7 +33,8 @@ def digital_source(partial_xpath: str):
 
 
 xpaths = XPaths(
-    author_name=digital_source("tei:author/text()"),
+    # author_name=digital_source("tei:author/text()"),
+    author_name="//tei:titleStmt/tei:author/text()",
     author_id="//tei:titleStmt/tei:author/@ref",
     source_title=digital_source("tei:title/text()"),
     source_ref=digital_source("tei:ref/@target"),
@@ -45,8 +46,7 @@ TEIXPath: Callable[[etree.ElementTree], Any] = partial(
 )
 
 xpath_definitions = {
-    "source_author": TEIXPath(xpaths.author_name),
-    "author_id_url": TEIXPath(xpaths.author_id),
+    "author_name": TEIXPath(xpaths.author_name),
     "source_title": TEIXPath(xpaths.source_title),
     "source_ref": TEIXPath(xpaths.source_ref)
 }
@@ -92,9 +92,10 @@ class ELTeCBindingsExtractor(collections.UserDict):
     @staticmethod
     def _get_id_type_dict(ref_id: str) -> Mapping[str, str]:
         """..."""
+        _parts = list(filter(bool, re.split(r"[/:]", ref_id)))
         _pairs = zip(
-            ("id_type", "id_value"),
-            re.split(r"[/:]", ref_id)[-2:]
+            ("id_type", "id_value", "id_full"),
+            (*_parts[-2:], ref_id)
         )
 
         return dict(_pairs)
@@ -121,19 +122,18 @@ class ELTeCBindingsExtractor(collections.UserDict):
             tree = etree.parse(f)
 
             _xpath_bindings = toolz.valmap(
-                lambda x: x(tree)[0],
+                lambda x: x(tree)[0] if x(tree) else None,
                 xpath_definitions
             )
 
         _eltec_path = Path(self.eltec_url)
+        _author_id: str = TEIXPath(xpaths.author_id)(tree)[0]
+
         _base_bindings = {
             "url": self.eltec_url,
             "file_stem": _eltec_path.stem.lower(),
             "repo_id": _eltec_path.parts[3].lower(),
-
-            # "author_id": Path(_xpath_bindings["author_id_url"]).stem,
-            "author_id": self._get_author_ids(_xpath_bindings["author_id_url"]),
-
+            "author_id": self._get_author_ids(_author_id),
             "other_sources": list(self._get_other_sources(tree))
         }
 
