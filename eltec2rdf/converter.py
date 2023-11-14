@@ -235,20 +235,20 @@ class ELTeCConverter:
 ##################################################
 # adhoc testing
 
-eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU007.xml"
+# eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU007.xml"
 # eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU002.xml"
 
 # eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-fra/master/level1/FRA00401_Allais.xml"
 
-## errors
+##errors
 # eltec_url = "https://github.com/COST-ELTeC/ELTeC-fra/blob/master/level1/FRA00301_Aimard.xml"
+eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-eng/master/level1/ENG18440_Disraeli.xml"
 
 converter = ELTeCConverter(eltec_url)
 
 import json
 d = converter.bindings
 print(json.dumps(dict(d), indent=4))
-# print(converter.bindings)
 
 
 
