@@ -3,7 +3,8 @@
 import re
 import os
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Iterable
+from typing import Literal
 
 from github import Github, Auth
 from dotenv import load_dotenv
@@ -53,9 +54,13 @@ def _get_eltec_corpus_repos() -> Iterator[str]:
             yield repo_name
 
 
-def get_eltec_xml_links() -> Iterator[str]:
+def get_eltec_xml_links(*, repos: Iterable[str] | Literal["all"]) -> Iterator[str]:
     """Get XML file links from level1 folders across all ELTec repos."""
-    corpus_repo_names = _get_eltec_corpus_repos()
+    corpus_repo_names = (
+        _get_eltec_corpus_repos()
+        if repos == "all"
+        else repos
+    )
 
     for repo_name in corpus_repo_names:
         full_repo_name = f"COST-ELTeC/{repo_name}"
