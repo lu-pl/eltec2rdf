@@ -33,6 +33,7 @@ def digital_source(partial_xpath: str):
 
 
 xpaths = XPaths(
+    # get author name from titleStmt instead
     # author_name=digital_source("tei:author/text()"),
     author_name="//tei:titleStmt/tei:author/text()",
     author_id="//tei:titleStmt/tei:author/@ref",
@@ -102,6 +103,9 @@ class ELTeCBindingsExtractor(collections.UserDict):
 
     def _get_author_ids(self, xpath_result: str) -> list[Mapping]:
         """..."""
+        if not xpath_result:
+            return None
+
         _ids = filter(
             lambda x: x.find("missing") == -1,
             xpath_result.split(" ")
@@ -122,12 +126,16 @@ class ELTeCBindingsExtractor(collections.UserDict):
             tree = etree.parse(f)
 
             _xpath_bindings = toolz.valmap(
-                lambda x: x(tree)[0] if x(tree) else None,
+                lambda x: self._get_bibl(x(tree)[0]) if x(tree) else None,
                 xpath_definitions
             )
 
         _eltec_path = Path(self.eltec_url)
-        _author_id: str = TEIXPath(xpaths.author_id)(tree)[0]
+
+        try:
+            _author_id: str = TEIXPath(xpaths.author_id)(tree)[0]
+        except IndexError:
+            _author_id = ""
 
         _base_bindings = {
             "url": self.eltec_url,

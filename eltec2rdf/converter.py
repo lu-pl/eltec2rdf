@@ -6,6 +6,8 @@ from collections.abc import Mapping, Iterator
 
 from eltec2rdf.extractors import ELTeCBindingsExtractor
 
+from loguru import logger
+
 from lodkit.graph import Graph
 from lodkit.types import _Triple
 from lodkit.utils import plist
@@ -53,18 +55,21 @@ class ELTeCConverter:
 
     def _get_actor_uris(self) -> Mapping[str, URIRef]:
         """Get URIRefs for the actor namespace."""
-        _corpus_id, _author_gnd_id = map(
-            self.bindings.get,
-            ("repo_id", "author_gnd_id")
+        corpus_id = self.bindings["repo_id"]
+
+        _author_id = self.bindings["author_id"][0]
+        id_type, id_value = map(
+            _author_id.get,
+            ("id_type", "id_value")
         )
 
         actor_ns = Namespace(
-            f"https://{_corpus_id}.clscor.io/entity/actor/gnd{_author_gnd_id}/"
+            f"https://{corpus_id}.clscor.io/entity/actor/{id_type}{id_value}"
         )
 
         uris = dict(
             e39=actor_ns[""],
-            e39_e41=actor_ns["id/1"]
+            e39_e41=actor_ns["/id/1"]
         )
 
         return uris
@@ -77,7 +82,7 @@ class ELTeCConverter:
 
         _author, _title, _author_id = map(
             self.bindings.get,
-            ("source_author", "source_title", "author_id")
+            ("author_name", "source_title", "author_id")
         )
 
         _sources = self.bindings["other_sources"]
@@ -136,7 +141,7 @@ class ELTeCConverter:
             doc["f3"],
             # (RDFS.label, Literal("Edition ...")),
             (RDF.type, lrm["F3_Manifestation"]),
-            (crm["P1_is_identified_by"], crm["f3_e42"]),
+            (crm["P1_is_identified_by"], doc["f3_e42"]),
             (lrm["R4_embodies"], doc["f2"])
         )
 
@@ -159,7 +164,8 @@ class ELTeCConverter:
         actor_triples = plist(
             actor["e39"],
             (RDF.type, crm["E39_Actor"]),
-            (RDFS.label, Literal(f"{_author} [Actor]"))
+            (RDFS.label, Literal(f"{_author} [Actor]")),
+            (crm["P1_is_identified_by"], actor["e39_e41"])
         )
 
         actor_gnd_triples = plist(
@@ -170,11 +176,13 @@ class ELTeCConverter:
                 Literal(f"GND ID of '{_author}'")),
             (
                 crm["P190_has_symbolic_content"],
-                Literal(f"{_author_id}")
+                Literal(f"{_author_id[0]['id_value']}")
             ),
             (
                 crm["P2_has_type"],
-                URIRef("https://core.clscor.io/entity/type/id/gnd")
+                URIRef(
+                    f"https://core.clscor.io/entity/type/id/{_author_id[0]['id_type']}"
+                )
             )
         )
 
@@ -233,31 +241,37 @@ class ELTeCConverter:
 
 ##################################################
 ##################################################
-# adhoc testing
-
-# eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU007.xml"
-# eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU002.xml"
-
-# eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-fra/master/level1/FRA00401_Allais.xml"
-
-##errors
-# eltec_url = "https://github.com/COST-ELTeC/ELTeC-fra/blob/master/level1/FRA00301_Aimard.xml"
-eltec_url = "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-eng/master/level1/ENG18440_Disraeli.xml"
-
-converter = ELTeCConverter(eltec_url)
 
 import json
-d = converter.bindings
-print(json.dumps(dict(d), indent=4))
+import traceback
+
+from eltec2rdf.extractors.link_extractor import get_eltec_xml_links
+
+# for file_name in get_eltec_xml_links(repos=["ELTeC-deu"]):
+#     try:
+#         converter = ELTeCConverter(file_name)
+#         d = converter.bindings
+#         print(json.dumps(dict(d), indent=4, ensure_ascii=False))
+
+#     except Exception as e:
+#         logger.debug(f"{file_name} - {e}")
 
 
+def deu_triples():
+    for url in get_eltec_xml_links(repos=["ELTeC-deu"]):
+        _converter = ELTeCConverter(url)
+        try:
+            triples = _converter.generate_triples()
+            logger.info(f"Generating triples for {url}.")
+            yield from triples
+        except Exception as e:
+            logger.debug(f"Exception while processing '{url}': {e}")
 
 
-# triples = converter.generate_triples()
-# graph = Graph()
-# CLSInfraNamespaceManager(graph)
+graph = Graph()
+CLSInfraNamespaceManager(graph)
 
-# for triple in triples:
-#     graph.add(triple)
+for triple in deu_triples():
+    graph.add(triple)
 
-# print(graph.serialize())
+print(graph.serialize())
