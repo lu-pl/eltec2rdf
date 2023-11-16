@@ -1,149 +1,61 @@
 """Functionality for parsing ELTeC XML file links and extracting bindings."""
 
 import collections
-import re
 
-from collections.abc import Callable, Mapping, Iterator
-from dataclasses import dataclass
-from functools import partial
-from typing import Any
+from collections.abc import Mapping
+from dataclasses import dataclass, InitVar
 from urllib.request import urlretrieve
 from pathlib import Path
 
-import toolz
-
 from lxml import etree
+
+from eltec2rdf.extractors.tree_extractors import (
+    get_source_title,
+    get_source_ref,
+    get_sources,
+    get_authors
+)
 
 
 @dataclass
-class XPaths:
-    """Dataclass for XPath path definitions."""
+class ELTeCPath:
+    """Object representation for ELTeC raw links."""
 
-    author_name: str
-    author_id: str
-    source_title: str
-    source_ref: str
+    _eltec_url: InitVar
 
+    def __post_init__(self, eltec_url):
+        """Postinit hook for ELTeCPath."""
+        _path = Path(eltec_url)
 
-def digital_source(partial_xpath: str):
-    """Expand an XPath shortcut for 'digitalSource'."""
-    _digi_source = "//tei:sourceDesc/tei:bibl[@type='digitalSource']/"
-    _partial = partial_xpath.lstrip("/")
-    return f"{_digi_source}{_partial}"
-
-
-xpaths = XPaths(
-    # get author name from titleStmt instead
-    # author_name=digital_source("tei:author/text()"),
-    author_name="//tei:titleStmt/tei:author/text()",
-    author_id="//tei:titleStmt/tei:author/@ref",
-    source_title=digital_source("tei:title/text()"),
-    source_ref=digital_source("tei:ref/@target"),
-)
-
-TEIXPath: Callable[[etree.ElementTree], Any] = partial(
-    etree.XPath,
-    namespaces={"tei": "http://www.tei-c.org/ns/1.0"}
-)
-
-xpath_definitions = {
-    "author_name": TEIXPath(xpaths.author_name),
-    "source_title": TEIXPath(xpaths.source_title),
-    "source_ref": TEIXPath(xpaths.source_ref)
-}
+        self.url = eltec_url
+        self.stem = _path.stem.lower()
+        self.repo_id = _path.parts[3].lower()
 
 
 class ELTeCBindingsExtractor(collections.UserDict):
     """Binding Representation for an ELTeC resource."""
 
-    def __init__(self, eltec_url):
-        """Initialize an ELTeCBindingsExtractor instance."""
-        self.eltec_url = eltec_url
-        self.data = self._get_bindings()
+    def __init__(self, eltec_url: str) -> None:
+        """Initialize a BindingExtractor object."""
+        self._eltec_url = eltec_url
+        self._eltec_path = ELTeCPath(eltec_url)
+        self.data = self._generate_bindings()
 
-    @staticmethod
-    def _get_bibl(bibl: str) -> str:
-        """Sanitize bibliographic reference strings.
-
-        Used for tei:sourceDesc bibls.
-        """
-        return re.sub(r"\s{2,}", " ", "".join(bibl)).strip()
-
-    def _get_other_sources(
-            self,
-            tree: etree._ElementTree
-    ) -> Iterator[Mapping]:
-        """Extract bibls from tei:sourceDesc (excluding 'digitalSource').
-
-        Used in self._get_bindings along the 'other_sources' key.
-        """
-        _elements_path = TEIXPath(
-            "//tei:sourceDesc/tei:bibl[not(@type='digitalSource')]"
-        )
-        elements: list[etree._Element] = _elements_path(tree)
-
-        return map(
-            lambda element: {
-                "type": element.get("type"),
-                "title": self._get_bibl(element.xpath(".//text()"))
-            },
-            elements
-        )
-
-    @staticmethod
-    def _get_id_type_dict(ref_id: str) -> Mapping[str, str]:
-        """..."""
-        _parts = list(filter(bool, re.split(r"[/:]", ref_id)))
-        _pairs = zip(
-            ("id_type", "id_value", "id_full"),
-            (*_parts[-2:], ref_id)
-        )
-
-        return dict(_pairs)
-
-    def _get_author_ids(self, xpath_result: str) -> list[Mapping]:
-        """..."""
-        if not xpath_result:
-            return None
-
-        _ids = filter(
-            lambda x: x.find("missing") == -1,
-            xpath_result.split(" ")
-        )
-
-        author_ids = [
-            self._get_id_type_dict(_id)
-            for _id in _ids
-        ]
-
-        return author_ids
-
-    def _get_bindings(self) -> Mapping:
+    def _generate_bindings(self) -> dict:
         """Construct kwarg bindings for RDF generation."""
-        _temp_file_name, _ = urlretrieve(self.eltec_url)
+        _temp_file_name, _ = urlretrieve(self._eltec_url)
 
         with open(_temp_file_name) as f:
             tree = etree.parse(f)
 
-            _xpath_bindings = toolz.valmap(
-                lambda x: self._get_bibl(x(tree)[0]) if x(tree) else None,
-                xpath_definitions
-            )
-
-        _eltec_path = Path(self.eltec_url)
-
-        try:
-            _author_id: str = TEIXPath(xpaths.author_id)(tree)[0]
-        except IndexError:
-            _author_id = ""
-
-        _base_bindings = {
-            "url": self.eltec_url,
-            "file_stem": _eltec_path.stem.lower(),
-            "repo_id": _eltec_path.parts[3].lower(),
-            "author_id": self._get_author_ids(_author_id),
-            "other_sources": list(self._get_other_sources(tree))
+        bindings = {
+            "source_title": get_source_title(tree),
+            "source_ref": get_source_ref(tree),
+            "url": self._eltec_path.url,
+            "file_stem": self._eltec_path.stem,
+            "repo_id": self._eltec_path.repo_id,
+            "authors": get_authors(tree),
+            "sources": get_sources(tree)
         }
 
-        bindings = {**_xpath_bindings, **_base_bindings}
         return bindings
