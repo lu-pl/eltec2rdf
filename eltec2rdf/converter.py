@@ -15,7 +15,7 @@ from lodkit.utils import plist
 from rdflib import Literal, URIRef, Namespace
 from rdflib.namespace import RDF, RDFS
 
-from clisn import crm, crmcls, crmdig, lrm, CLSInfraNamespaceManager
+from clisn import crm, crmcls, crmdig, lrm
 
 
 class ELTeCConverter:
