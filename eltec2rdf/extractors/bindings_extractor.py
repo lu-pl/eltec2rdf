@@ -41,6 +41,15 @@ class ELTeCBindingsExtractor(abc.ABC, collections.UserDict):
         self.eltec_path = ELTeCPath(eltec_url)
         self.data = self.generate_bindings()
 
+    def get_etree(self) -> etree._ElementTree:
+        """Generate an ElementTree from an ELTec raw URL."""
+        _temp_file_name, _ = urlretrieve(self.eltec_url)
+
+        with open(_temp_file_name) as f:
+            tree = etree.parse(f)
+
+        return tree
+
     @abc.abstractclassmethod
     def generate_bindings(self) -> dict:
         """Construct kwarg bindings for RDF generation.
@@ -56,10 +65,7 @@ class DEUBindingsExtractor(ELTeCBindingsExtractor):
 
     def generate_bindings(self) -> dict:
         """Construct kwarg bindings for RDF generation."""
-        _temp_file_name, _ = urlretrieve(self.eltec_url)
-
-        with open(_temp_file_name) as f:
-            tree = etree.parse(f)
+        tree = self.get_etree()
 
         bindings = {
             "source_title": get_source_title(tree),
