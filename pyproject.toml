@@ -15,6 +15,7 @@ lodkit = "^0.1.9"
 clisn = "^0.1.2"
 rdflib = "^7.0.0"
 loguru = "^0.7.2"
+pydantic = "^2.5.1"
 
 
 [build-system]
