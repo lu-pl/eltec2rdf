@@ -1,4 +1,7 @@
-"""Extractors for pulling data from TEI/XML for use in bindings_extractor."""
+"""Extractors for pulling data from TEI/XML for use in bindings_extractor.
+
+THIS IS A MERE COPY OF THE OLD tree_extractors!!!
+"""
 
 import re
 

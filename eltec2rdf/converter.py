@@ -4,8 +4,6 @@ import itertools
 
 from collections.abc import Mapping, Iterator
 
-from eltec2rdf.extractors import ELTeCBindingsExtractor
-
 from loguru import logger
 
 from lodkit.graph import Graph

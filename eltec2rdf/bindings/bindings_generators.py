@@ -1,4 +1,4 @@
-"""Functionality for parsing ELTeC XML file links and extracting bindings."""
+"""Functionality for parsing ELTeC XML file links and generating bindings."""
 
 import abc
 import collections
@@ -9,17 +9,15 @@ from pathlib import Path
 
 from lxml import etree
 
-from eltec2rdf.extractors.tree_extractors import (
-    get_source_title,
-    get_source_ref,
-    get_sources,
-    get_authors
+from eltec2rdf.extractors.xpath_extractors import (
+    deu_extractors as deu,
+    # spa_extractors as spa
 )
 
 
 @dataclass
 class ELTeCPath:
-    """Object representation for ELTeC raw links."""
+    """Simple object representation for ELTeC raw links."""
 
     _eltec_url: InitVar
 
@@ -32,11 +30,11 @@ class ELTeCPath:
         self.repo_id = _path.parts[3].lower()
 
 
-class ELTeCBindingsExtractor(abc.ABC, collections.UserDict):
-    """ABC for BindingExtractors."""
+class ELTeCBindingsGenerator(abc.ABC, collections.UserDict):
+    """ABC for BindingGenerator."""
 
     def __init__(self, eltec_url: str) -> None:
-        """Initialize a BindingExtractor object."""
+        """Initialize a BindingGenerator object."""
         self.eltec_url = eltec_url
         self.eltec_path = ELTeCPath(eltec_url)
         self.data = self.generate_bindings()
@@ -55,30 +53,40 @@ class ELTeCBindingsExtractor(abc.ABC, collections.UserDict):
         """Construct kwarg bindings for RDF generation.
 
         This method is responsible for /somehow/ generating dict data
-        which is then used to init the UserDict of a BindingsExtractor.
+        which is then used to init the UserDict of a BindingsGenerator.
         """
         raise NotImplementedError
 
 
-class DEUBindingsExtractor(ELTeCBindingsExtractor):
-    """ELTeC BindingsExtractor for the DEU corpus."""
+class DEUBindingsGenerator(ELTeCBindingsGenerator):
+    """ELTeC BindingsGenerator for the DEU corpus."""
 
     def generate_bindings(self) -> dict:
         """Construct kwarg bindings for RDF generation."""
         tree = self.get_etree()
 
+        # bindings = {
+        #     "url": self.eltec_path.url,
+        #     "file_stem": self.eltec_path.stem,
+        #     "repo_id": self.eltec_path.repo_id,
+        #     "source_title": deu.get_source_title(tree),
+        #     "source_ref": deu.get_source_ref(tree),
+        #     "authors": deu.get_authors(tree),
+        #     "sources": deu.get_sources(tree)
+        # }
+
         bindings = {
-            "source_title": get_source_title(tree),
-            "source_ref": get_source_ref(tree),
             "url": self.eltec_path.url,
             "file_stem": self.eltec_path.stem,
             "repo_id": self.eltec_path.repo_id,
-            "authors": get_authors(tree),
-            "sources": get_sources(tree)
+            "author": str,
+            "author_ids": list,
+            "work": str,
+            'work_ids': list
         }
 
         return bindings
 
 
-class SPABindingsExtractor(ELTeCBindingsExtractor):
-    """ELTeC BindingsExtractor for the SPA corpus."""
+class SPABindingsGenerator(ELTeCBindingsGenerator):
+    """ELTeC BindingsGenerator for the SPA corpus."""
