@@ -14,6 +14,8 @@ from eltec2rdf.extractors.xpath_extractors import (
     # spa_extractors as spa
 )
 
+from eltec2rdf.bindings.models import Bindings
+
 
 @dataclass
 class ELTeCPath:
@@ -65,27 +67,26 @@ class DEUBindingsGenerator(ELTeCBindingsGenerator):
         """Construct kwarg bindings for RDF generation."""
         tree = self.get_etree()
 
-        # bindings = {
-        #     "url": self.eltec_path.url,
+        # _bindings = {
+        #     "raw_link": self.eltec_path.url,
         #     "file_stem": self.eltec_path.stem,
         #     "repo_id": self.eltec_path.repo_id,
-        #     "source_title": deu.get_source_title(tree),
-        #     "source_ref": deu.get_source_ref(tree),
-        #     "authors": deu.get_authors(tree),
-        #     "sources": deu.get_sources(tree)
+        #     "author_name": deu.get_authors(tree)[0]["name"],
+        #     "work_title": deu.get_source_title(tree),
         # }
 
-        bindings = {
-            "url": self.eltec_path.url,
-            "file_stem": self.eltec_path.stem,
-            "repo_id": self.eltec_path.repo_id,
-            "author": str,
-            "author_ids": list,
-            "work": str,
-            'work_ids': list
-        }
+        # bindings = Bindings(**_bindings)
 
-        return bindings
+        # bindings = Bindings(
+        #     raw_link=self.eltec_path.url,
+        #     file_stem=self.eltec_path.stem,
+        #     repo_id=self.eltec_path.repo_id,
+        #     author_name=deu.get_authors(tree)[0]["name"],
+        #     work_title=deu.get_source_title(tree)
+        # )
+        bindings = Bindings.parse_obj(_bindings)
+
+        return bindings.model_dump()
 
 
 class SPABindingsGenerator(ELTeCBindingsGenerator):

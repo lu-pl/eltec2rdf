@@ -1,0 +1,377 @@
+#+title: Notes for eltec2rdf
+#+author: Lukas Plank
+
+* fields
+
+#+begin_src text
+  raw_link: str
+  work_title: str
+  author_name: str
+
+  # actor_ids: at least generated, possibly pointing to GND or something
+  author_ids: [{id_type: id}, ...]
+
+  # work_ids: at least ELTeC-IDs (e.g. "DEU007"), possibly external
+  work_ids: [{id_type: id}, ...]
+#+end_src
+
+
+* General design approaches
+
+General: Maybe use a pydantic model at some point (where/when exactly) for validation?
+
+1. Approach: General BindingsExtractor
+
+   Make a single general BindingsExtractor and have the value getter functions shortcircuit on several specific extractors.
+
+   - Benefits: Only a single and very clean BindingsExtractor interface.
+   - Detriments: value getter functions might|will become convoluted and hard to maintain/understand.
+   
+     
+2. Approach: Specific BindingsExtractors
+
+   Make a general BindingsExtractor ABC and implement specific BindingsExtractors per corpus. E.g. DEUBindingsExtractor etc.
+   The ABC would provide some basic init code and define an abstractmethod "~generate_bindings~" which must return a dict or better a Pydantic model.
+
+   - Benefits: Specfic BindingsExtractors are easier to maintain; the Bindingsextractor interface would be as clean as with Approach 1
+   - Detriments: Some possible scattering of corpus-specific value getter functions - but this can't be avoided with Approach 1 either.
+   
+   
+* Refactor bindings extractor
+
+Define an extractor function/staticmethod for every json/dict entry in bindings -> according to bindings example proposal below!
+
+Extractor functions are +of ~Callable[[etree._ElementTree], <dict_value>]~ and+ (necessarely?) responsible for generating dict values in the bindings mappings.
+
+An important idea is to make the extractor more robust by having them shortcircuit on a series of possible xpath expressions.
+
+#+begin_src python
+  from eltec2rdf.utils.helpers import f_or
+
+  TEIXPath: Callable[[etree.ElementTree], Any] = partial(
+      etree.XPath,
+      namespaces={"tei": "http://www.tei-c.org/ns/1.0"}
+  )
+
+
+  # maybe with raise
+  def _raise():
+      raise Exception("From _raise!")
+
+  def some_binding_extractor(tree: etree._ElementTree):
+      xpath_result = f_or(
+          TEIXPath("//somexpath")(tree),
+          TEIXPath("//otherxpath")(tree),
+          TEIXPath("//yetanotherxpath")(tree),
+      ) or _raise()  # maybe implement a call_on_raise flag for f_or?
+#+end_src
+
+
+- ~_get_bibl~ ::
+
+  This is actually a generic string sanitizer, so this needs renaming and can be generally used.
+
+- ~_get_other_sources~ ::
+
+  This actually already is an extractor function; it could be changed to get all sources, not just other sources.
+
+  ...
+
+  
+* bindings template
+
+** current
+
+#+begin_src json
+  {
+      "author_name": "Auerbach, Berthold (1812-1882)",
+      "source_title": "Der Lehnhold",
+      "source_ref": "textgrid:k8gc.0",
+      "url": "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU002.xml",
+      "file_stem": "deu002",
+      "repo_id": "eltec-deu",
+      "author_id": [
+          {
+              "id_type": "gnd",
+              "id_value": "11865103X",
+              "id_full": "http://d-nb.info/gnd/11865103X"
+          }
+      ],
+      "other_sources": [
+          {
+              "type": "printSource",
+              "title": "Berthold Auerbach: Gesammelte Schriften, 2. Gesammtausgabe, Band 7, Stuttgart: Cotta, 1863."
+          }
+      ]
+  }
+#+end_src
+
+** proposal
+
+#+begin_src json
+  {
+      "source_title": "Der Lehnhold",
+      "source_ref": "textgrid:k8gc.0",
+      "url": "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU002.xml",
+      "file_stem": "deu002",
+      "repo_id": "eltec-deu",
+      "author": [
+          {
+              "author_name": "Auerbach, Berthold (1812-1882)",
+              "id_type": "gnd",
+              "id_value": "11865103X",
+              "id_full": "http://d-nb.info/gnd/11865103X"
+          },
+          # possibly more authors
+          {
+              ...
+          }
+      ]
+      "sources": [
+          # all sources (including "digitalSource")?
+              {
+                  "type": "printSource",
+                  "title": "Berthold Auerbach: Gesammelte Schriften, 2. Gesammtausgabe, Band 7, Stuttgart: Cotta, 1863."
+              }
+      ]
+  }
+#+end_src
+
+** todo
+- should ~author_id~ be a list? maybe to support multiple authors?
+  maybe just opt for one author?
+
+* RDF example
+
+#+begin_src ttl
+  <https://eltec-deu.clscor.io/entity/doc/deu007/tei> a cls:X2_Corpus_Document ;
+      rdfs:label "Stifter: Die Mappe meines Urgroßvaters [TEI Document on GitHub]" ;
+      crm:P1_is_identified_by <https://eltec-deu.clscor.io/entity/doc/deu007/url> , <https://eltec-deu.clscor.io/entity/doc/deu007/id/1> ;
+      lrm:R4_embodies <https://eltec-deu.clscor.io/entity/doc/deu007/expression/1> .
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/url> a crm:E42_Identifier ;
+      rdfs:label "GitHub URL of Stifter: Die Mappe meines Urgroßvaters" ;
+      crm:P190_has_symbolic_content "https://raw.githubusercontent.com/COST-ELTeC/ELTeC-deu/master/level1/DEU007.xml" .
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/id> a crm:E42_Identifier ;
+      rdfs:label "ELTeC ID of Stifter: Die Mappe meines Urgroßvaters" ;
+      crm:P2_has_type "https://eltec.clscor.io/entity/type/id" ;
+      crm:P190_has_symbolic_content "DEU007" .
+
+  # todo: type
+  <https://eltec.clscor.io/entity/type/id> a crm:E55_Type ;
+      rdfs:label "ELTeC ID" .
+      # add appellation with known pattern -> P1 -> E41 -> P190 -> "name"
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/expression/1> a lrm:F2_Expression ;
+      rdfs:label "Stifter: Die Mappe meines Urgroßvaters [Expression]" .
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/expression/creation> a lrm:F28_Expression_Creation ;
+      rdfs:label "Writing of Die Mappe meines Urgroßvaters" ;
+      crm:P14_carried_out_by <https://eltec-deu.clscor.io/entity/actor/gnd118618156> ;
+      lrm:R17_created <https://eltec-deu.clscor.io/entity/doc/deu007/expression/1> .
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/work> a lrm:F1_Work ;
+      rdfs:label "Stifter: Die Mappe meines Urgroßvaters [Work]" ;
+      lrm:R3_is_realised_in <https://eltec-deu.clscor.io/entity/doc/deu007/expression/1> ;
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/work/creation> a lrm:F27_Work_Creation ;
+      rdfs:label "Inventing Stifter: Die Mappe meines Urgroßvaters" ;
+      crm:P14_carried_out_by <https://eltec-deu.clscor.io/entity/actor/gnd118618156> ;
+      lrm:R16_created <https://eltec-deu.clscor.io/entity/doc/deu007/work> .
+
+  <https://eltec-deu.clscor.io/entity/actor/gnd118618156> a crm:E39_Actor ;
+      rdfs:label "Stifter, Adalbert [Actor]" ;
+      crm:P1_is_identified_by <https://eltec-deu.clscor.io/entity/actor/gnd118618156/id/1> .
+
+  <https://eltec-deu.clscor.io/entity/actor/gnd118618156/id/1> a crm:E41_Identifier ;
+      rdfs:label "GND-ID of Adalbert Stifter";
+      crm:P190_has_symbolic_content "118618156" ;
+      crm:P2_has_type <https://core.clscor.io/entity/type/id/gnd> .
+      # Add names
+
+  # todo: type
+  <https://core.clscor.io/entity/type/id/gnd> a crm:E55_Type ;
+      rdfs:label "GND ID" .
+      crm:P2_has_type <https://core.clscor.io/entity/type/id> .
+
+  # todo: type
+  <https://core.clscor.io/entity/type/id> a crm:E55_Type ;
+      rdfs:label "Identifier in external Reference Ressource" .
+
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/tei/digitalSource> a dig:D1_Digital_Object ;
+      rdfs:label "Digital Source of Stifter: Mappe in Textgrid" ;
+      crm:P1_is_identified_by <https://eltec-deu.clscor.io/entity/doc/deu007/tei/digitalSource/id/1> .
+
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/tei/digitalSource/id/1> a crm:E41_Identifier ;
+      rdfs:label "Textgrid Identifier of Stifter: Mappe" ;
+      crm:P190_has_symbolic_content "textgrid:vs29.0" ;
+      crm:P2_has_type <https://core.clscor.io/entity/type/id/textgrid> .
+
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/originalSource> a lrm:F3_Manifestation ;
+      rdfs:label "Edition that was digitized to create the Textgrid Source" ;
+      crm:P1_is_identified_by <https://eltec-deu.clscor.io/entity/doc/deu007/originalSource/bibl> ;
+      lrm:R4_embodies <https://eltec-deu.clscor.io/entity/doc/deu007/expression/1> .
+
+
+  <https://eltec-deu.clscor.io/entity/doc/deu007/originalSource/bibl> a crm:E42_Appellation ;
+      rdfs:label "Bibliographic reference of the origial source as extrated from TEI file" ; 
+      crm:P190_has_symbolic_content "Adelbert Stifter: Gesammelte Werke in sechs Bänden, [herausgegeben von editorMax Stefl,] Band 1, 6.–10. Tausend der Gesamtausgabe, Wiesbaden: Insel, 1959. [Entstanden 1840/41,]" .
+#+end_src
+
+* old binding extractor
+
+#+begin_src python
+  """Functionality for parsing ELTeC XML file links and extracting bindings."""
+
+  import collections
+  import re
+
+  from collections.abc import Callable, Mapping, Iterator
+  from dataclasses import dataclass
+  from functools import partial
+  from typing import Any
+  from urllib.request import urlretrieve
+  from pathlib import Path
+
+  import toolz
+
+  from lxml import etree
+
+
+  @dataclass
+  class XPaths:
+      """Dataclass for XPath path definitions."""
+
+      author_name: str
+      author_id: str
+      source_title: str
+      source_ref: str
+
+
+  def digital_source(partial_xpath: str):
+      """Expand an XPath shortcut for 'digitalSource'."""
+      _digi_source = "//tei:sourceDesc/tei:bibl[@type='digitalSource']/"
+      _partial = partial_xpath.lstrip("/")
+      return f"{_digi_source}{_partial}"
+
+
+  xpaths = XPaths(
+      # get author name from titleStmt instead
+      # author_name=digital_source("tei:author/text()"),
+      author_name="//tei:titleStmt/tei:author/text()",
+      author_id="//tei:titleStmt/tei:author/@ref",
+      source_title=digital_source("tei:title/text()"),
+      source_ref=digital_source("tei:ref/@target"),
+  )
+
+  TEIXPath: Callable[[etree.ElementTree], Any] = partial(
+      etree.XPath,
+      namespaces={"tei": "http://www.tei-c.org/ns/1.0"}
+  )
+
+  xpath_definitions = {
+      "author_name": TEIXPath(xpaths.author_name),
+      "source_title": TEIXPath(xpaths.source_title),
+      "source_ref": TEIXPath(xpaths.source_ref)
+  }
+
+
+  class ELTeCBindingsExtractor(collections.UserDict):
+      """Binding Representation for an ELTeC resource."""
+
+      def __init__(self, eltec_url):
+          """Initialize an ELTeCBindingsExtractor instance."""
+          self.eltec_url = eltec_url
+          self.data = self._get_bindings()
+
+      @staticmethod
+      def _repr(bibl: str) -> str:
+          """Sanitize strings by eliminating superfluous whitespace."""
+          return re.sub(r"\s{2,}", " ", "".join(bibl)).strip()
+
+      def _get_other_sources(
+              self,
+              tree: etree._ElementTree
+      ) -> Iterator[Mapping]:
+          """Extract bibls from tei:sourceDesc (excluding 'digitalSource').
+
+          Used in self._get_bindings along the 'other_sources' key.
+          """
+          _elements_path = TEIXPath(
+              "//tei:sourceDesc/tei:bibl[not(@type='digitalSource')]"
+          )
+          elements: list[etree._Element] = _elements_path(tree)
+
+          return map(
+              lambda element: {
+                  "type": element.get("type"),
+                  "title": self._repr(element.xpath(".//text()"))
+              },
+              elements
+          )
+
+      @staticmethod
+      def _get_id_type_dict(ref_id: str) -> Mapping[str, str]:
+          """..."""
+          _parts = list(filter(bool, re.split(r"[/:]", ref_id)))
+          _pairs = zip(
+              ("id_type", "id_value", "id_full"),
+              (*_parts[-2:], ref_id)
+          )
+
+          return dict(_pairs)
+
+      def _get_author_ids(self, xpath_result: str) -> list[Mapping]:
+          """..."""
+          if not xpath_result:
+              return None
+
+          _ids = filter(
+              lambda x: x.find("missing") == -1,
+              xpath_result.split(" ")
+          )
+
+          author_ids = [
+              self._get_id_type_dict(_id)
+              for _id in _ids
+          ]
+
+          return author_ids
+
+      def _get_bindings(self) -> Mapping:
+          """Construct kwarg bindings for RDF generation."""
+          _temp_file_name, _ = urlretrieve(self.eltec_url)
+
+          with open(_temp_file_name) as f:
+              tree = etree.parse(f)
+
+              _xpath_bindings = toolz.valmap(
+                  lambda x: self._repr(x(tree)[0]) if x(tree) else None,
+                  xpath_definitions
+              )
+
+          _eltec_path = Path(self.eltec_url)
+
+          try:
+              _author_id: str = TEIXPath(xpaths.author_id)(tree)[0]
+          except IndexError:
+              _author_id = ""
+
+          _base_bindings = {
+              "url": self.eltec_url,
+              "file_stem": _eltec_path.stem.lower(),
+              "repo_id": _eltec_path.parts[3].lower(),
+              "author_id": self._get_author_ids(_author_id),
+              "other_sources": list(self._get_other_sources(tree))
+          }
+
+          bindings = {**_xpath_bindings, **_base_bindings}
+          return bindings
+#+end_src
+
+
+
