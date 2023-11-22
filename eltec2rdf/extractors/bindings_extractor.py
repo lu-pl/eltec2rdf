@@ -1,8 +1,8 @@
 """Functionality for parsing ELTeC XML file links and extracting bindings."""
 
+import abc
 import collections
 
-from collections.abc import Mapping
 from dataclasses import dataclass, InitVar
 from urllib.request import urlretrieve
 from pathlib import Path
@@ -32,18 +32,31 @@ class ELTeCPath:
         self.repo_id = _path.parts[3].lower()
 
 
-class ELTeCBindingsExtractor(collections.UserDict):
-    """Binding Representation for an ELTeC resource."""
+class ELTeCBindingsExtractor(abc.ABC, collections.UserDict):
+    """ABC for BindingExtractors."""
 
     def __init__(self, eltec_url: str) -> None:
         """Initialize a BindingExtractor object."""
-        self._eltec_url = eltec_url
-        self._eltec_path = ELTeCPath(eltec_url)
-        self.data = self._generate_bindings()
+        self.eltec_url = eltec_url
+        self.eltec_path = ELTeCPath(eltec_url)
+        self.data = self.generate_bindings()
 
-    def _generate_bindings(self) -> dict:
+    @abc.abstractclassmethod
+    def generate_bindings(self) -> dict:
+        """Construct kwarg bindings for RDF generation.
+
+        This method is responsible for /somehow/ generating dict data
+        which is then used to init the UserDict of a BindingsExtractor.
+        """
+        raise NotImplementedError
+
+
+class DEUBindingsExtractor(ELTeCBindingsExtractor):
+    """ELTeC BindingsExtractor for the DEU corpus."""
+
+    def generate_bindings(self) -> dict:
         """Construct kwarg bindings for RDF generation."""
-        _temp_file_name, _ = urlretrieve(self._eltec_url)
+        _temp_file_name, _ = urlretrieve(self.eltec_url)
 
         with open(_temp_file_name) as f:
             tree = etree.parse(f)
@@ -51,11 +64,15 @@ class ELTeCBindingsExtractor(collections.UserDict):
         bindings = {
             "source_title": get_source_title(tree),
             "source_ref": get_source_ref(tree),
-            "url": self._eltec_path.url,
-            "file_stem": self._eltec_path.stem,
-            "repo_id": self._eltec_path.repo_id,
+            "url": self.eltec_path.url,
+            "file_stem": self.eltec_path.stem,
+            "repo_id": self.eltec_path.repo_id,
             "authors": get_authors(tree),
             "sources": get_sources(tree)
         }
 
         return bindings
+
+
+class SPABindingsExtractor(ELTeCBindingsExtractor):
+    """ELTeC BindingsExtractor for the SPA corpus."""
