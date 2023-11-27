@@ -8,7 +8,7 @@ from functools import partial, wraps
 from loguru import logger
 from lxml import etree
 
-from eltec2rdf.utils import _or
+from eltec2rdf.utils.utils import _or
 
 
 TEIXPath = partial(
