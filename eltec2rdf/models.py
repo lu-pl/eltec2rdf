@@ -9,7 +9,8 @@ from pydantic import BaseModel, ConfigDict
 from eltec2rdf.vocabs.vocabs import vocab_graph
 
 
-vocab_types: Iterator[str] = map(str, vocab_graph.objects(None, RDFS.label))
+# better list cast here, else the iterator will likely be exhausted somewhere
+vocab_types: list[str] = list(map(str, vocab_graph.objects(None, RDFS.label)))
 
 
 class IDMapping(BaseModel):
