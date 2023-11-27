@@ -1,5 +1,6 @@
 """Pydantic models for RDFGenerator bindings validation."""
 
+from collections.abc import Mapping
 from pydantic import BaseModel, ConfigDict
 
 
@@ -12,5 +13,5 @@ class BindingsBaseModel(BaseModel):
     work_title: str
     author_name: str
 
-    author_ids: list | None = None
-    work_ids: list | None = None
+    author_ids: Mapping | None = None
+    work_ids: Mapping | None = None
