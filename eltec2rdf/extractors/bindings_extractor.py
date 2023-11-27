@@ -10,9 +10,7 @@ from lxml import etree
 
 from eltec2rdf.extractors.tree_extractors import (
     get_source_title,
-    get_source_ref,
-    get_sources,
-    get_authors
+    get_author_name
 )
 
 
@@ -48,13 +46,14 @@ class ELTeCBindingsExtractor(collections.UserDict):
             tree = etree.parse(f)
 
         bindings = {
-            "source_title": get_source_title(tree),
-            "source_ref": get_source_ref(tree),
-            "url": self._eltec_path.url,
+            "raw_link": self._eltec_path.url,
             "file_stem": self._eltec_path.stem,
             "repo_id": self._eltec_path.repo_id,
-            "authors": get_authors(tree),
-            "sources": get_sources(tree)
+
+            "source_title": get_source_title(tree),
+            # "source_refs": get_source_refs(tree),
+            "author_name": get_author_name(tree),
+            # "author_refs": get_source_refs(tree)
         }
 
         return bindings
