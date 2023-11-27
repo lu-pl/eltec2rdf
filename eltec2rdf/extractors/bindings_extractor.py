@@ -46,13 +46,17 @@ class ELTeCBindingsExtractor(collections.UserDict):
             tree = etree.parse(f)
 
         bindings = {
-            "raw_link": self._eltec_path.url,
+            "resource_uri": self._eltec_path.url,
             "file_stem": self._eltec_path.stem,
             "repo_id": self._eltec_path.repo_id,
 
-            "source_title": get_source_title(tree),
-            # "source_refs": get_source_refs(tree),
+            "work_title": get_source_title(tree),
             "author_name": get_author_name(tree),
+
+            "work_ids": ...,
+            "author_ids": ...
+
+            # "source_refs": get_source_refs(tree),
             # "author_refs": get_source_refs(tree)
         }
 
