@@ -29,7 +29,7 @@ class RDFGenerator(abc.ABC):
         for triple in self._triples:
             self._graph.add(triple)
 
-        return self._graph()
+        return self._graph
 
     @property
     def graph(self):
