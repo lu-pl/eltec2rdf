@@ -56,7 +56,3 @@ class RDFGenerator(abc.ABC):
     def __next__(self):
         """Return the next item from the iterator."""
         return next(self)
-
-
-class CLSCorGenerator(RDFGenerator):
-    """Basisc CLSCor RDF generator."""
