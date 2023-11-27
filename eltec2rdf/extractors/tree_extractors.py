@@ -8,6 +8,8 @@ from functools import partial, wraps
 from loguru import logger
 from lxml import etree
 
+from eltec2rdf.utils import _or
+
 
 TEIXPath = partial(
     etree.XPath,
@@ -39,7 +41,11 @@ def _digital_source(partial_xpath: str):
     return f"{_digi_source}{_partial}"
 
 
-def _from_sourcedesc(tree: etree._ElementTree) -> str | None:
+def _title_from_sourcedesc(tree: etree._ElementTree) -> str | None:
+    """Try to get source_title from sourceDesc.
+
+    XPath extractor for get_source_title.
+    """
     xpath_result = TEIXPath(_digital_source("tei:title/text()"))(tree)
 
     if xpath_result:
@@ -48,7 +54,11 @@ def _from_sourcedesc(tree: etree._ElementTree) -> str | None:
     return None
 
 
-def _from_titlestmt(tree: etree._ElementTree) -> str | None:
+def _title_from_titlestmt(tree: etree._ElementTree) -> str | None:
+    """Try to get source_title from titleStmt.
+
+    XPath extractor for get_source_title.
+    """
     xpath_result = TEIXPath("//tei:titleStmt/tei:title/text()")(tree)
 
     if xpath_result:
@@ -61,9 +71,9 @@ def _from_titlestmt(tree: etree._ElementTree) -> str | None:
 def get_source_title(tree: etree._ElementTree) -> str | None:
     """Extract a source title from a TEI ElementTree."""
     result = (
-        _from_sourcedesc(tree)
+        _title_from_sourcedesc(tree)
         or
-        _from_titlestmt(tree)
+        _title_from_titlestmt(tree)
         or
         None
     )
@@ -71,42 +81,7 @@ def get_source_title(tree: etree._ElementTree) -> str | None:
     return result
 
 
-def get_source_ref(tree: etree._ElementTree):
-    """..."""
-    xpath_result = TEIXPath(_digital_source("tei:ref/@target"))(tree)
-
-    if xpath_result:
-        return xpath_result[0]
-
-    return None
-
-
-def get_sources(tree: etree._ElementTree) -> list[dict]:
-    """Extract bibls from tei:sourceDesc."""
-    elements = TEIXPath("//tei:sourceDesc/tei:bibl")(tree)
-
-    result = map(
-        lambda element: {
-            "type": element.get("type"),
-            "title": _repr(TEIXPath("tei:title/text()")(element)),
-            "ref": TEIXPath("tei:ref/@target")(element)
-        },
-        elements
-    )
-
-    return list(result)
-
-
-def get_authors(tree: etree._ElementTree) -> list:
-    """..."""
-    elements = TEIXPath("//tei:titleStmt/tei:author")(tree)
-
-    result = map(
-        lambda element: {
-            "name": _repr(element.xpath(".//text()")),
-            "ref": element.get("ref")
-        },
-        elements
-    )
-
-    return list(result)
+def get_author_name(tree: etree._ElementTree) -> str:
+    """Extract the author name from tei:titleStmt."""
+    _name = TEIXPath("//tei:titleStmt/tei:author/text()")(tree)
+    return _repr(_name)
