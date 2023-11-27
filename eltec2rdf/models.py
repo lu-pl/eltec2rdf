@@ -8,4 +8,9 @@ class BindingsBaseModel(BaseModel):
 
     model_config = ConfigDict(extra="allow")
 
-    # specify fields
+    resource_uri: str
+    work_title: str
+    author_name: str
+
+    author_ids: list | None = None
+    work_ids: list | None = None
