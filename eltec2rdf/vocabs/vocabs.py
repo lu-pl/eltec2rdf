@@ -40,7 +40,7 @@ class VocabLookupException(Exception):
 
 
 def vocab(term: str, _graph: Graph = vocab_graph) -> URIRef:
-    """Bla."""
+    """Lookup a term in a vocab graph and return the subject URI."""
     _subjects = vocab_graph.subjects(RDFS.label, Literal(term))
 
     try:
