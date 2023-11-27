@@ -6,8 +6,6 @@ from collections.abc import Mapping, Iterator
 
 from eltec2rdf.extractors import ELTeCBindingsExtractor
 
-from loguru import logger
-
 from lodkit.graph import Graph
 from lodkit.types import _Triple
 from lodkit.utils import plist
