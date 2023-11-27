@@ -13,10 +13,10 @@ vocab_types: Iterator[str] = map(str, vocab_graph.objects(None, RDFS.label))
 
 
 class IDMapping(BaseModel):
-    """Model for IDMappings."""
+    """Simple model for IDMappings."""
 
     id_type: Literal[*vocab_types] | None = None
-    id_value: str
+    id_value: str | None = None
 
 
 class BindingsBaseModel(BaseModel):
