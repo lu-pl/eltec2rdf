@@ -9,6 +9,7 @@ from loguru import logger
 from lxml import etree
 
 from eltec2rdf.utils.utils import _or
+from eltec2rdf.models import IDMapping
 
 
 TEIXPath = partial(
@@ -68,7 +69,7 @@ def _title_from_titlestmt(tree: etree._ElementTree) -> str | None:
     return None
 
 
-def get_source_title(tree: etree._ElementTree) -> str | None:
+def get_work_title(tree: etree._ElementTree) -> str | None:
     """Extract a source title from a TEI ElementTree."""
     result = (
         _title_from_sourcedesc(tree)
@@ -85,3 +86,23 @@ def get_author_name(tree: etree._ElementTree) -> str:
     """Extract the author name from tei:titleStmt."""
     _name = TEIXPath("//tei:titleStmt/tei:author/text()")(tree)
     return _repr(_name)
+
+
+def get_work_ids(tree: etree._ElementTree) -> dict:
+    """Try to extract workd ids from a tree.
+
+    The returned dict is expected to validate against IDMapping.
+    If no ids can be retrieved, return an empty dict,
+    else the validator will fail.
+    """
+    ...
+
+
+def get_author_ids(tree: etree._ElementTree) -> dict:
+    """Try to extract author ids from a tree.
+
+    The returned dict is expected to validate against IDMapping.
+    If no ids can be retrieved, return an empty dict,
+    else the validator will fail.
+    """
+    ...
