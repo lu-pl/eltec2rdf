@@ -5,27 +5,17 @@ import abc
 from collections.abc import Iterator
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
 from lodkit.types import _Triple
-
 from rdflib import Graph as RDFLibGraph
 
-
-class BindingsModel(BaseModel):
-    """BindingsValidator for basic CLSCor bindings."""
-
-    model_config = ConfigDict(extra="allow")
-
-    x: int
-    y: str
-    z: str | None = None
+from eltec2rdf.models import BindingsBaseModel
 
 
 class RDFGenerator(abc.ABC):
     """RDFGenerator ABC."""
 
     def __init__(self,
-                 model: type[BindingsModel] = BindingsModel,
+                 model: type[BindingsBaseModel] = BindingsBaseModel,
                  graph: RDFLibGraph | None = None,
                  **bindings: Any) -> None:
         """Initialize an RDFGenerator."""
