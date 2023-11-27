@@ -2,14 +2,11 @@
 
 import re
 
-from collections.abc import Iterator, Mapping
-from functools import partial, wraps
+from functools import partial
+from typing import Literal
 
-from loguru import logger
 from lxml import etree
-
-from eltec2rdf.utils.utils import _or
-from eltec2rdf.models import IDMapping
+from eltec2rdf.models import vocab_types
 
 
 TEIXPath = partial(
@@ -42,7 +39,7 @@ def _digital_source(partial_xpath: str):
     return f"{_digi_source}{_partial}"
 
 
-def _title_from_sourcedesc(tree: etree._ElementTree) -> str | None:
+def _get_title_from_sourcedesc(tree: etree._ElementTree) -> str | None:
     """Try to get source_title from sourceDesc.
 
     XPath extractor for get_source_title.
@@ -55,7 +52,7 @@ def _title_from_sourcedesc(tree: etree._ElementTree) -> str | None:
     return None
 
 
-def _title_from_titlestmt(tree: etree._ElementTree) -> str | None:
+def _get_title_from_titlestmt(tree: etree._ElementTree) -> str | None:
     """Try to get source_title from titleStmt.
 
     XPath extractor for get_source_title.
@@ -69,12 +66,24 @@ def _title_from_titlestmt(tree: etree._ElementTree) -> str | None:
     return None
 
 
+def _get_id_type(id_value: str) -> Literal[*vocab_types] | None:
+    """Primitive callabe for determining the id_type of an id_value.
+
+    This merely performs a string containment check lol.
+    """
+    for id_type in vocab_types:
+        if id_type in id_value:
+            return id_type
+
+    return None
+
+
 def get_work_title(tree: etree._ElementTree) -> str | None:
     """Extract a source title from a TEI ElementTree."""
     result = (
-        _title_from_sourcedesc(tree)
+        _get_title_from_sourcedesc(tree)
         or
-        _title_from_titlestmt(tree)
+        _get_title_from_titlestmt(tree)
         or
         None
     )
@@ -95,7 +104,7 @@ def get_work_ids(tree: etree._ElementTree) -> dict:
     If no ids can be retrieved, return an empty dict,
     else the validator will fail.
     """
-    ...
+    return {}
 
 
 def get_author_ids(tree: etree._ElementTree) -> dict:
@@ -105,4 +114,4 @@ def get_author_ids(tree: etree._ElementTree) -> dict:
     If no ids can be retrieved, return an empty dict,
     else the validator will fail.
     """
-    ...
+    return {}
