@@ -1,0 +1,35 @@
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://clscor.io/entity/type/identifier/gnd> a crm:E55_Type,
+        skos:Concept ;
+    rdfs:label "gnd" ;
+    skos:inScheme <https://clscor.io/entity/type/identifier/> ;
+    skos:prefLabel "gnd" .
+
+<https://clscor.io/entity/type/identifier/textgrid> a crm:E55_Type,
+        skos:Concept ;
+    rdfs:label "textgrid" ;
+    skos:inScheme <https://clscor.io/entity/type/identifier/> ;
+    skos:prefLabel "textgrid" .
+
+<https://clscor.io/entity/type/identifier/viaf> a crm:E55_Type,
+        skos:Concept ;
+    rdfs:label "viaf" ;
+    skos:inScheme <https://clscor.io/entity/type/identifier/> ;
+    skos:prefLabel "viaf" .
+
+<https://clscor.io/entity/type/identifier/wikidata> a crm:E55_Type,
+        skos:Concept ;
+    rdfs:label "wikidata" ;
+    skos:inScheme <https://clscor.io/entity/type/identifier/> ;
+    skos:prefLabel "wikidata" .
+
+<https://clscor.io/entity/type/identifier/> a skos:ConceptScheme ;
+    skos:hasTopConcept <https://clscor.io/entity/type/identifier/gnd>,
+        <https://clscor.io/entity/type/identifier/textgrid>,
+        <https://clscor.io/entity/type/identifier/viaf>,
+        <https://clscor.io/entity/type/identifier/wikidata> .
+
+
