@@ -8,9 +8,12 @@ from pathlib import Path
 
 from lxml import etree
 
+
 from eltec2rdf.extractors.tree_extractors import (
-    get_source_title,
-    get_author_name
+    get_work_title,
+    get_author_name,
+    get_work_ids,
+    get_author_ids
 )
 
 
@@ -50,14 +53,11 @@ class ELTeCBindingsExtractor(collections.UserDict):
             "file_stem": self._eltec_path.stem,
             "repo_id": self._eltec_path.repo_id,
 
-            "work_title": get_source_title(tree),
+            "work_title": get_work_title(tree),
             "author_name": get_author_name(tree),
 
-            "work_ids": ...,
-            "author_ids": ...
-
-            # "source_refs": get_source_refs(tree),
-            # "author_refs": get_source_refs(tree)
+            "work_ids": get_work_ids(tree),
+            "author_ids": get_author_ids(tree)
         }
 
         return bindings
