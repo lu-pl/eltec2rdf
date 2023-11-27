@@ -2,7 +2,6 @@
 
 import collections
 
-from collections.abc import Mapping
 from dataclasses import dataclass, InitVar
 from urllib.request import urlretrieve
 from pathlib import Path
