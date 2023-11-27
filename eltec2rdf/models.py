@@ -1,7 +1,22 @@
 """Pydantic models for RDFGenerator bindings validation."""
 
-from collections.abc import Mapping
+from collections.abc import Iterator
+from typing import Literal
+
+from rdflib.namespace import RDFS
 from pydantic import BaseModel, ConfigDict
+
+from eltec2rdf.vocabs.vocabs import vocab_graph
+
+
+vocab_types: Iterator[str] = map(str, vocab_graph.objects(None, RDFS.label))
+
+
+class IDMapping(BaseModel):
+    """Model for IDMappings."""
+
+    id_type: Literal[*vocab_types] | None = None
+    id_value: str
 
 
 class BindingsBaseModel(BaseModel):
@@ -13,5 +28,5 @@ class BindingsBaseModel(BaseModel):
     work_title: str
     author_name: str
 
-    author_ids: Mapping | None = None
-    work_ids: Mapping | None = None
+    author_ids: IDMapping | None = None
+    work_ids: IDMapping | None = None
