@@ -6,7 +6,7 @@ from functools import partial
 from typing import Literal
 
 from lxml import etree
-from eltec2rdf.models import vocab_types, IDMapping
+from eltec2rdf.models import vocab_types
 
 
 TEIXPath = partial(
