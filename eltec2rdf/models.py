@@ -29,5 +29,5 @@ class BindingsBaseModel(BaseModel):
     work_title: str
     author_name: str
 
-    author_ids: IDMapping | None = None
-    work_ids: IDMapping | None = None
+    author_ids: list[IDMapping] | None = None
+    work_ids: list[IDMapping] | None = None
