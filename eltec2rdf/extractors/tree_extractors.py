@@ -6,7 +6,7 @@ from functools import partial
 from typing import Literal
 
 from lxml import etree
-from eltec2rdf.models import vocab_types
+from eltec2rdf.models import vocab_types, IDMapping
 
 
 TEIXPath = partial(
@@ -66,7 +66,7 @@ def _get_title_from_titlestmt(tree: etree._ElementTree) -> str | None:
     return None
 
 
-def _get_id_type(id_value: str) -> Literal[*vocab_types] | None:
+def _get_id_type(id_value: str, _fail_value=None) -> Literal[*vocab_types] | None:
     """Primitive callabe for determining the id_type of an id_value.
 
     This merely performs a string containment check lol.
@@ -75,7 +75,7 @@ def _get_id_type(id_value: str) -> Literal[*vocab_types] | None:
         if id_type in id_value:
             return id_type
 
-    return None
+    return _fail_value
 
 
 def get_work_title(tree: etree._ElementTree) -> str | None:
@@ -97,21 +97,37 @@ def get_author_name(tree: etree._ElementTree) -> str:
     return _repr(_name)
 
 
-def get_work_ids(tree: etree._ElementTree) -> dict:
+def get_work_ids(tree: etree._ElementTree) -> list[dict]:
     """Try to extract workd ids from a tree.
 
     The returned dict is expected to validate against IDMapping.
     If no ids can be retrieved, return an empty dict,
     else the validator will fail.
     """
-    return {}
+    # deu/spa: sourceDesc/bibl/ref/@target; maybe record the bibl type?
+    _work_ids = TEIXPath("//tei:sourceDesc/tei:bibl/tei:ref/@target")(tree)
+    return [
+        {
+            "id_type": _get_id_type(work_id),
+            "id_value": work_id
+        }
+        for work_id in _work_ids
+    ]
 
 
-def get_author_ids(tree: etree._ElementTree) -> dict:
+def get_author_ids(tree: etree._ElementTree) -> list[dict]:
     """Try to extract author ids from a tree.
 
     The returned dict is expected to validate against IDMapping.
     If no ids can be retrieved, return an empty dict,
     else the validator will fail.
     """
-    return {}
+    # deu/spa: titleStmt/author/@ref
+    _author_ids = TEIXPath("//tei:titleStmt/tei:author/@ref")(tree)
+    return [
+        {
+            "id_type": _get_id_type(author_id),
+            "id_value": author_id
+        }
+        for author_id in _author_ids
+    ]
