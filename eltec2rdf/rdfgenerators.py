@@ -16,7 +16,8 @@ from clisn import crm, crmcls, crmdig, lrm
 from eltec2rdf.rdfgenerator_abc import RDFGenerator
 from eltec2rdf.extractors import ELTeCBindingsExtractor
 from eltec2rdf.utils.utils import mkuri, uri_ns
-from eltec2rdf.vocabs.vocabs import vocab
+from eltec2rdf.vocabs.vocabs import vocab, VocabLookupException
+from eltec2rdf.models import IDMapping
 
 
 class CLSCorGenerator(RDFGenerator):
@@ -24,15 +25,52 @@ class CLSCorGenerator(RDFGenerator):
 
     def generate_triples(self) -> Iterator[_Triple]:
         """Generate triples from an ELTeC resource."""
+        # add eltec repo id to work_ids
+        self.bindings.work_ids.append(
+            IDMapping(
+                id_type=None,
+                id_value=self.bindings.file_stem
+            )
+        )
+
         work_ids: dict[URIRef, dict] = {
             mkuri(): ids
-            for ids in [
-                    *self.bindings.work_ids,
-                    self.bindings.file_stem  # type: ignore
-            ]
+            for ids in self.bindings.work_ids
         }
 
-        uris = uri_ns("x2", "x8", "eltec_schema", "f1", "f2", "f3", "e39")
+        author_ids: dict[URIRef, dict] = {
+            mkuri(): ids
+            for ids in self.bindings.author_ids
+        }
+
+        uris = uri_ns(
+            "e39",
+            "x2", "x8",
+            "eltec_schema",
+            "f1", "f2", "f3", "f27", "f28"
+        )
+
+        def work_id_triples() -> Iterator[_Triple]:
+            """Triple iterator for work ID assertions."""
+            for work_uri, work_data in work_ids.items():
+                triples = plist(
+                    work_uri,
+                    (RDF.type, crm.E42_Identifier),
+                    (RDFS.label, Literal(f"{self.bindings.work_title} [ID]")),
+                    (crm.P190_has_symbolic_content, Literal(f"{work_data.id_value}"))
+                )
+
+                try:
+                    vocab_uri = vocab(work_data.id_type)
+                    yield (
+                        work_uri,
+                        crm.P2_has_type,
+                        vocab_uri
+                    )
+                except VocabLookupException:
+                    pass
+
+                yield from triples
 
         x2_triples = plist(
             uris.x2,
@@ -52,6 +90,51 @@ class CLSCorGenerator(RDFGenerator):
             (crmcls.Y3i_is_schema_of, uris.x2)
         )
 
+        f1_triples = plist(
+            uris.f1,
+            (RDF.type, lrm.F1_Work),
+            (RDFS.label, Literal(f"{self.bindings.work_title} [Work]")),
+            # P1 [E42s from work_id]
+            (lrm.R16i_was_created_by, uris.f27),
+            (lrm.R3_is_realised_in, uris.f2),
+            (lrm.R74i_has_expression_used_in, uris.f1)
+        )
+
+        f2_triples = plist(
+            uris.f2,
+            (RDF.type, lrm.F2_Expression),
+            (RDFS.label, Literal(f"{self.bindings.work_title} [Expression]")),
+            (lrm.R3i_realises, uris.f1),
+            (lrm.R17i_was_created_by, uris.f28),
+            (lrm.R4i_is_embodied_in, uris.x2)  # and f3s (todo)
+        )
+
+        f27_triples = plist(
+            uris.f27,
+            (RDF.type, lrm.F27_Work_Creation),
+            (crm.P14_carried_out_by, uris.e39),
+            (lrm.R16_created, uris.f1)
+        )
+
+        f28_triples = plist(
+            uris.f28,
+            (RDF.type, lrm.F28_Expression_Creation),
+            (
+                RDFS.label,
+                Literal(f"{self.bindings.work_title} [Expression Creation]")
+            ),
+            (crm.P14_carried_out_by, uris.e39),
+            (lrm.R17_created, uris.f2)
+        )
+
+        e39_triples = plist(
+            uris.e39,
+            (RDF.type, crm.E39_Actor),
+            (RDFS.label, Literal(f"{self.bindings.author_name} [Actor]")),
+            (crm.P14i_performed, (uris.f27, uris.f28)),
+            (crm.P1_is_identified_by, tuple(author_ids.keys()))
+        )
+
         eltec_schema_uri = plist(
             uris.eltec_schema,
             (RDF.type, crm.E42_Identifier),
@@ -65,229 +148,16 @@ class CLSCorGenerator(RDFGenerator):
             )
         )
 
-        return itertools.chain(
+        triples = itertools.chain(
             x2_triples,
             x8_triples,
-            eltec_schema_uri
-        )
-
-
-class ELTeCConverter:
-    """Converter for RDF generation based on an ELTec resource."""
-
-    def __init__(self, eltec_url: str) -> None:
-        """Initialize an ELTeCConverter instance."""
-        self._eltec_url = eltec_url
-        self._graph = Graph()
-        self.bindings = ELTeCBindingsExtractor(self._eltec_url)
-
-    def _get_doc_uris(self) -> Mapping[str, URIRef]:
-        """Get URIRefs for the document namespace."""
-        _corpus_id, _document_id = map(
-            self.bindings.get,
-            ("repo_id", "file_stem")
-        )
-        doc_ns = Namespace(
-            f"https://{_corpus_id}.clscor.io/entity/doc/{_document_id}/"
-        )
-
-        uris = dict(
-            tei=doc_ns["tei"],
-            url=doc_ns["url"],
-            doc_id=doc_ns["id"],
-            f1=doc_ns["work"],
-            f2=doc_ns["expression/1"],
-            f3=doc_ns["originalSource"],
-            f3_e42=doc_ns["originalSource/bibl"],
-            f27=doc_ns["work/creation"],
-            f28=doc_ns["expression/creation"],
-            d1=doc_ns["tei/digitalSource"],
-            d1_e41=doc_ns["tei/digitalSource/id/1"]
-        )
-
-        return uris
-
-    def _get_actor_uris(self) -> Mapping[str, URIRef]:
-        """Get URIRefs for the actor namespace."""
-        corpus_id = self.bindings["repo_id"]
-
-        _author_id = self.bindings["author_id"][0]
-        id_type, id_value = map(
-            _author_id.get,
-            ("id_type", "id_value")
-        )
-
-        actor_ns = Namespace(
-            f"https://{corpus_id}.clscor.io/entity/actor/{id_type}{id_value}"
-        )
-
-        uris = dict(
-            e39=actor_ns[""],
-            e39_e41=actor_ns["/id/1"]
-        )
-
-        return uris
-
-    def generate_triples(self) -> Iterator[_Triple]:
-        """Generate triples from an ELTeC resource."""
-        # uri collections
-        doc = self._get_doc_uris()
-        actor = self._get_actor_uris()
-
-        _author, _title, _author_id = map(
-            self.bindings.get,
-            ("author_name", "source_title", "author_id")
-        )
-
-        _sources = self.bindings["other_sources"]
-        print_source = next(
-            source
-            for source in _sources
-            if source["type"] == "printSource"
-        )["title"]
-
-        short_ref = f"{_author}: {_title}"
-
-        tei_triples = plist(
-            doc["tei"],
-            (RDF.type, crmcls["X2_Corpus_Document"]),
-            (RDFS.label, Literal(f"{short_ref} [TEI Document on Github]")),
-            (crm["P1_is_identified_by"], doc["url"]),
-            (crm["P1_is_identified_by"], doc["doc_id"]),
-            (lrm["R4_embodies"], doc["f2"])
-        )
-
-        url_triples = plist(
-            doc["url"],
-            (RDF.type, crm["E42_Identifier"]),
-            (RDFS.label, Literal(f"Github URL of '{short_ref}'")),
-            (crm["P190_has_symbolic_content"], Literal(self._eltec_url))
-        )
-
-        id_triples = plist(
-            doc["doc_id"],
-            (RDF.type, crm["E42_Identifier"]),
-            (RDFS.label, Literal(f"ELTeC ID of '{short_ref}'")),
-            (
-                crm["P2_has_type"],
-                Literal("https://eltec.clscor.io/entity/type/id")
-            ),
-            (
-                crm["P190_has_symbolic_content"],
-                Literal(self.bindings["file_stem"].upper())
-            )
-        )
-
-        f1_triples = plist(
-            doc["f1"],
-            (RDF.type, lrm["F1_Work"]),
-            (RDFS.label, Literal(f"{short_ref} [Work]")),
-            (lrm["R3_is_realised_in"], doc["f2"])
-        )
-
-        f2_triples = plist(
-            doc["f2"],
-            (RDF.type, lrm["F2_Expression"]),
-            (RDFS.label, Literal(f"{short_ref} [Expression]"))
-        )
-
-        f3_triples = plist(
-            doc["f3"],
-            # (RDFS.label, Literal("Edition ...")),
-            (RDF.type, lrm["F3_Manifestation"]),
-            (crm["P1_is_identified_by"], doc["f3_e42"]),
-            (lrm["R4_embodies"], doc["f2"])
-        )
-
-        f27_triples = plist(
-            doc["f27"],
-            (RDF.type, lrm["F27_Work_Creation"]),
-            (RDFS.label, Literal(f"Work creation of {short_ref}")),
-            (crm["P14_carried_out_by"], actor["e39"]),
-            (lrm["R16_created"], doc["f1"])
-        )
-
-        f28_triples = plist(
-            doc["f28"],
-            (RDF.type, lrm["F28_Expression_Creation"]),
-            (RDFS.label, Literal(f"Expression creation of '{short_ref}'")),
-            (crm["P14_carried_out_by"], actor["e39"]),
-            (lrm["R17_created"], doc["f2"])
-        )
-
-        actor_triples = plist(
-            actor["e39"],
-            (RDF.type, crm["E39_Actor"]),
-            (RDFS.label, Literal(f"{_author} [Actor]")),
-            (crm["P1_is_identified_by"], actor["e39_e41"])
-        )
-
-        actor_gnd_triples = plist(
-            actor["e39_e41"],
-            (RDF.type, crm["E41_Identifier"]),
-            (
-                RDFS.label,
-                Literal(f"GND ID of '{_author}'")),
-            (
-                crm["P190_has_symbolic_content"],
-                Literal(f"{_author_id[0]['id_value']}")
-            ),
-            (
-                crm["P2_has_type"],
-                URIRef(
-                    f"https://core.clscor.io/entity/type/id/{_author_id[0]['id_type']}"
-                )
-            )
-        )
-
-        d1_triples = plist(
-            doc["d1"],
-            (RDF.type, crmdig["D1_Digital_Object"]),
-            (RDFS.label, Literal(f"Digital Source of '{short_ref}'")),
-            (crm["P1_is_identified_by"], doc["d1_e41"])
-        )
-
-        d1_id_triples = plist(
-            doc["d1_e41"],
-            (RDF.type, crm["E41_Identifier"]),
-            (RDFS.label, Literal(f"Textgrid Identifier of '{short_ref}'")),
-            (
-                crm["P190_has_symbolic_content"],
-                Literal(self.bindings["source_ref"])
-            ),
-            (
-                crm["P2_has_type"],
-                URIRef("https://core.clscor.io/entity/type/id/textgrid")
-            )
-        )
-
-        biblref_triples = plist(
-            doc["f3_e42"],
-            (RDF.type, crm["E42_Appellation"]),
-            (
-                RDFS.label,
-                Literal(
-                    "Bibliographic reference of the origial source "
-                    "as extrated from TEI file"
-                )
-            ),
-            (crm["P190_has_symbolic_content"], Literal(print_source))
-        )
-
-        triples = itertools.chain(
-            tei_triples,
-            url_triples,
-            id_triples,
             f1_triples,
             f2_triples,
-            f3_triples,
             f27_triples,
             f28_triples,
-            actor_triples,
-            actor_gnd_triples,
-            d1_triples,
-            d1_id_triples,
-            biblref_triples
+            e39_triples,
+            eltec_schema_uri,
+            work_id_triples()
         )
 
-        yield from triples
+        return triples
