@@ -2,12 +2,15 @@
 
 import hashlib
 
-from collections.abc import Callable
-from typing import TypeVar
+from collections.abc import Callable, Iterator
+from itertools import repeat
+from typing import TypeVar, Optional
+from types import SimpleNamespace
 from uuid import uuid4
 
-from rdflib import URIRef
+from rdflib import URIRef, Graph, BNode
 from lodkit.utils import genhash
+from lodkit.types import _Triple, _TripleObject
 
 
 T = TypeVar("T")
@@ -50,3 +53,68 @@ def mkuri(
     )
 
     return URIRef(f"{_base_uri}{_path[:length]}")
+
+
+# this will be available in lodkit soon!
+class ttl:
+    """Triple/graph constructor implementing a ttl-like interface."""
+
+    def __init__(self,
+                 uri: URIRef,
+                 *predicate_object_pairs: tuple[URIRef, _TripleObject | list],
+                 graph: Optional[Graph] = None):
+        """Initialize a plist object."""
+        self.uri = uri
+        self.predicate_object_pairs = predicate_object_pairs
+        self.graph = Graph() if graph is None else graph
+        self._iter = iter(self)
+
+    def __iter__(self) -> Iterator[_Triple]:
+        """Generate an iterator of tuple-based triple representations."""
+        for pred, obj in self.predicate_object_pairs:
+            match obj:
+                case list() | Iterator():
+                    _b = BNode()
+                    yield (self.uri, pred, _b)
+                    yield from ttl(_b, *obj)
+                case tuple():
+                    _object_list = zip(repeat(pred), obj)
+                    yield from ttl(self.uri, *_object_list)
+                case _:
+                    yield (self.uri, pred, obj)
+
+    def __next__(self) -> _Triple:
+        """Return the next triple from the iterator."""
+        return next(self._iter)
+
+    def to_graph(self) -> Graph:
+        """Generate a graph instance."""
+        for triple in self:
+            self.graph.add(triple)
+        return self.graph
+
+
+class plist(ttl):
+    """Deprecated alias to ttl.
+
+    This is for backwards api compatibility only.
+    Since ttl also implements Turtle object lists now,
+    refering to the class as "plist" is inaccurate/misleading.
+    """
+
+
+def uri_ns(*names: str | tuple[str, str]):
+    """Generate a Namespace mapping for names and computed URIs."""
+    def _uris():
+        for name in names:
+            match name:
+                case str():
+                    yield name, mkuri()
+                case tuple():
+                    yield name[0], mkuri(name[1])
+                case _:
+                    raise Exception(
+                        "Args must be of type str | tuple[str, str]."
+                    )
+
+    return SimpleNamespace(**dict(_uris()))
