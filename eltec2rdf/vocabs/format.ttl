@@ -1,0 +1,411 @@
+@prefix crmcls: <https://clscor.io/ontologies/CRMcls/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://clscor.io/entity/type/format/alto_xml> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "Alto XML" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "Alto XML" .
+
+<https://clscor.io/entity/type/format/annis> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "ANNIS" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "ANNIS" .
+
+<https://clscor.io/entity/type/format/conll> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CoNLL" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CoNLL" .
+
+<https://clscor.io/entity/type/format/conll-u> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "ConLL-U" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "ConLL-U" .
+
+<https://clscor.io/entity/type/format/conll2000> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CoNLL 2000" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CoNLL 2000" .
+
+<https://clscor.io/entity/type/format/conll2002> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CoNLL 2002" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CoNLL 2002" .
+
+<https://clscor.io/entity/type/format/conll2003> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CoNLL 2003" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CoNLL 2003" .
+
+<https://clscor.io/entity/type/format/conll2006> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CoNLL 2006" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CoNLL 2006" .
+
+<https://clscor.io/entity/type/format/conll2009> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CoNLL 2009" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CoNLL 2009" .
+
+<https://clscor.io/entity/type/format/conll2012> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CoNLL 2012" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CoNLL 2012" .
+
+<https://clscor.io/entity/type/format/conll_corenlp> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CoNLL CoreNLP" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CoNLL CoreNLP" .
+
+<https://clscor.io/entity/type/format/cora_xml> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CorA XML" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CorA XML" .
+
+<https://clscor.io/entity/type/format/csv> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "CSV" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashcsv> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "CSV" .
+
+<https://clscor.io/entity/type/format/doc> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "DOC" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashmsword> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "DOC" .
+
+<https://clscor.io/entity/type/format/docx> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "DOCX" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashmsword> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "DOCX" .
+
+<https://clscor.io/entity/type/format/elan> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "ELAN" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "ELAN" .
+
+<https://clscor.io/entity/type/format/epub> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "EPUB" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashepubpluszip> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "EPUB" .
+
+<https://clscor.io/entity/type/format/gdf> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "GDF" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashcsv> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "GDF" .
+
+<https://clscor.io/entity/type/format/gexf> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "GEXF" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashxml> ;
+    skos:definition "Graph Exchange XML Format" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "GEXF" .
+
+<https://clscor.io/entity/type/format/gml> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "GML" ;
+    skos:definition "Graph Modeling Language" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "GML" .
+
+<https://clscor.io/entity/type/format/graf> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "GrAF" ;
+    skos:definition "Graph-based Format for Linguistic Annotations" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "GrAF" .
+
+<https://clscor.io/entity/type/format/graph_ml> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "GraphML" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "GraphML" .
+
+<https://clscor.io/entity/type/format/horizontal> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "HORIZONTAL" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/plain> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "HORIZONTAL" .
+
+<https://clscor.io/entity/type/format/html> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "HTML" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashhtml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "HTML" .
+
+<https://clscor.io/entity/type/format/ims_cwb_vrt> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "IMS CWB VRT" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:definition "verticalized XML" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "IMS CWB VRT" .
+
+<https://clscor.io/entity/type/format/jpeg> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "JPEG" ;
+    skos:altLabel "JPG" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/jpeg> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "JPEG" .
+
+<https://clscor.io/entity/type/format/json> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "JSON" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashjson> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "JSON" .
+
+<https://clscor.io/entity/type/format/laf> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "LAF" ;
+    skos:definition "Linguistic Annotation Format" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "LAF" .
+
+<https://clscor.io/entity/type/format/latex> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "LaTeX" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashvnd.latex-z> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "LaTeX" .
+
+<https://clscor.io/entity/type/format/marc21> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "MARC21" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashmarc> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "MARC21" .
+
+<https://clscor.io/entity/type/format/mobi> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "MOBI" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashvnd.amazon.mobi8-ebook> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "MOBI" .
+
+<https://clscor.io/entity/type/format/nif> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "NIF" ;
+    skos:definition "NLP Interchange Format" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "NIF" .
+
+<https://clscor.io/entity/type/format/odt> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "ODT" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "ODT" .
+
+<https://clscor.io/entity/type/format/pdf> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "PDF" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashpdf> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "PDF" .
+
+<https://clscor.io/entity/type/format/perseus_2.1> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "PERSEUS_2.1" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashxml> ;
+    skos:definition "Perseus Ancient Greek and Latin Dependency Treebank 2.1 XML (perseus_2.1)" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "PERSEUS_2.1" .
+
+<https://clscor.io/entity/type/format/rtf> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "RTF" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashrtf> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "RTF" .
+
+<https://clscor.io/entity/type/format/sgml> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "SGML" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashsgml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "SGML" .
+
+<https://clscor.io/entity/type/format/tcf> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "TCF" ;
+    skos:definition "Weblicht Text Corpus Format" ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "TCF" .
+
+<https://clscor.io/entity/type/format/tei> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "TEI" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashteiplusxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "TEI" .
+
+<https://clscor.io/entity/type/format/tei_p4> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "TEI P4" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashteiplusxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "TEI P4" .
+
+<https://clscor.io/entity/type/format/tei_p5> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "TEI P5" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashteiplusxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "TEI P5" .
+
+<https://clscor.io/entity/type/format/tei_txm> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "TEI TXM" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashteiplusxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "TEI TXM" .
+
+<https://clscor.io/entity/type/format/tsv> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "TSV" ;
+    skos:definition "tab separated values" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashtab-separated-values> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "TSV" .
+
+<https://clscor.io/entity/type/format/ttl> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "TTL" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashturtle> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "TTL" .
+
+<https://clscor.io/entity/type/format/txt> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "TXT" ;
+    skos:altLabel "plain text" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/plain> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "TXT" .
+
+<https://clscor.io/entity/type/format/vertical> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "VERTICAL" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/plain> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "VERTICAL" .
+
+<https://clscor.io/entity/type/format/xml> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "XML" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "XML" .
+
+<https://clscor.io/entity/type/format/xml_rdf> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "XML RDF" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashrdfplusxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "XML RDF" .
+
+<https://clscor.io/entity/type/format/xsl_fo> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "XSL FO" ;
+    skos:broaderMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/textslashxml> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "XSL FO" .
+
+<https://clscor.io/entity/type/format/zip> a skos:Concept,
+        crmcls:X7_Format ;
+    rdfs:label "ZIP" ;
+    skos:exactMatch <https://vocabs.sshopencloud.eu/vocabularies/media-type/applicationslashzip> ;
+    skos:inScheme <https://clscor.io/entity/type/format> ;
+    skos:prefLabel "ZIP" .
+
+<https://clscor.io/entity/type/format> a skos:ConceptScheme ;
+    skos:hasTopConcept <https://clscor.io/entity/type/format/alto_xml>,
+        <https://clscor.io/entity/type/format/annis>,
+        <https://clscor.io/entity/type/format/conll>,
+        <https://clscor.io/entity/type/format/conll-u>,
+        <https://clscor.io/entity/type/format/conll2000>,
+        <https://clscor.io/entity/type/format/conll2002>,
+        <https://clscor.io/entity/type/format/conll2003>,
+        <https://clscor.io/entity/type/format/conll2006>,
+        <https://clscor.io/entity/type/format/conll2009>,
+        <https://clscor.io/entity/type/format/conll2012>,
+        <https://clscor.io/entity/type/format/conll_corenlp>,
+        <https://clscor.io/entity/type/format/cora_xml>,
+        <https://clscor.io/entity/type/format/csv>,
+        <https://clscor.io/entity/type/format/doc>,
+        <https://clscor.io/entity/type/format/docx>,
+        <https://clscor.io/entity/type/format/elan>,
+        <https://clscor.io/entity/type/format/epub>,
+        <https://clscor.io/entity/type/format/gdf>,
+        <https://clscor.io/entity/type/format/gexf>,
+        <https://clscor.io/entity/type/format/gml>,
+        <https://clscor.io/entity/type/format/graf>,
+        <https://clscor.io/entity/type/format/graph_ml>,
+        <https://clscor.io/entity/type/format/horizontal>,
+        <https://clscor.io/entity/type/format/html>,
+        <https://clscor.io/entity/type/format/ims_cwb_vrt>,
+        <https://clscor.io/entity/type/format/jpeg>,
+        <https://clscor.io/entity/type/format/json>,
+        <https://clscor.io/entity/type/format/laf>,
+        <https://clscor.io/entity/type/format/latex>,
+        <https://clscor.io/entity/type/format/marc21>,
+        <https://clscor.io/entity/type/format/mobi>,
+        <https://clscor.io/entity/type/format/nif>,
+        <https://clscor.io/entity/type/format/odt>,
+        <https://clscor.io/entity/type/format/pdf>,
+        <https://clscor.io/entity/type/format/perseus_2.1>,
+        <https://clscor.io/entity/type/format/rtf>,
+        <https://clscor.io/entity/type/format/sgml>,
+        <https://clscor.io/entity/type/format/tcf>,
+        <https://clscor.io/entity/type/format/tei>,
+        <https://clscor.io/entity/type/format/tei_p4>,
+        <https://clscor.io/entity/type/format/tei_p5>,
+        <https://clscor.io/entity/type/format/tei_txm>,
+        <https://clscor.io/entity/type/format/tsv>,
+        <https://clscor.io/entity/type/format/ttl>,
+        <https://clscor.io/entity/type/format/txt>,
+        <https://clscor.io/entity/type/format/vertical>,
+        <https://clscor.io/entity/type/format/xml>,
+        <https://clscor.io/entity/type/format/xml_rdf>,
+        <https://clscor.io/entity/type/format/xsl_fo>,
+        <https://clscor.io/entity/type/format/zip> .
+
+
