@@ -3,6 +3,7 @@
 import itertools
 
 from collections.abc import Mapping, Iterator
+from types import SimpleNamespace
 
 from lodkit.graph import Graph
 from lodkit.types import _Triple
@@ -43,7 +44,7 @@ class CLSCorGenerator(RDFGenerator):
             for ids in self.bindings.author_ids
         }
 
-        uris = uri_ns(
+        uris: SimpleNamespace = uri_ns(
             "e39",
             "x2", "x8",
             "eltec_schema",

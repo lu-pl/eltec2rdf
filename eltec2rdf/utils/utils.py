@@ -103,7 +103,7 @@ class plist(ttl):
     """
 
 
-def uri_ns(*names: str | tuple[str, str]):
+def uri_ns(*names: str | tuple[str, str]) -> SimpleNamespace:
     """Generate a Namespace mapping for names and computed URIs."""
     def _uris():
         for name in names:
