@@ -6,7 +6,8 @@ from collections.abc import Mapping, Iterator
 
 from lodkit.graph import Graph
 from lodkit.types import _Triple
-from lodkit.utils import plist
+# from lodkit.utils import plist
+from eltec2rdf.utils.utils import plist
 
 from rdflib import Literal, URIRef, Namespace
 from rdflib.namespace import RDF, RDFS
@@ -14,6 +15,8 @@ from clisn import crm, crmcls, crmdig, lrm
 
 from eltec2rdf.rdfgenerator_abc import RDFGenerator
 from eltec2rdf.extractors import ELTeCBindingsExtractor
+from eltec2rdf.utils.utils import mkuri, uri_ns
+from eltec2rdf.vocabs.vocabs import vocab
 
 
 class CLSCorGenerator(RDFGenerator):
@@ -21,7 +24,52 @@ class CLSCorGenerator(RDFGenerator):
 
     def generate_triples(self) -> Iterator[_Triple]:
         """Generate triples from an ELTeC resource."""
-        ...
+        work_ids: dict[URIRef, dict] = {
+            mkuri(): ids
+            for ids in [
+                    *self.bindings.work_ids,
+                    self.bindings.file_stem  # type: ignore
+            ]
+        }
+
+        uris = uri_ns("x2", "x8", "eltec_schema", "f1", "f2", "f3", "e39")
+
+        x2_triples = plist(
+            uris.x2,
+            (RDF.type, crmcls.X2_Corpus_Document),
+            (RDFS.label, Literal(f"{self.bindings.work_title} [TEI Document]")),
+            (crm.P1_is_identified_by, tuple(work_ids.keys())),
+            (lrm.R4_embodies, uris.f2),
+            (crmcls.Y2_has_format, vocab("TEI")),
+            (crmcls.Y3_adheres_to_schema, uris.x8)
+        )
+
+        x8_triples = plist(
+            uris.x8,
+            (RDF.type, crmcls.X8_Schema),
+            (RDFS.label, Literal("ELTeC Level 1 RNG Schema")),
+            (crm.P1_is_identified_by, uris.eltec_schema),
+            (crmcls.Y3i_is_schema_of, uris.x2)
+        )
+
+        eltec_schema_uri = plist(
+            uris.eltec_schema,
+            (RDF.type, crm.E42_Identifier),
+            (RDFS.label, Literal("Link to ELTeC Level 1 RNG Schema")),
+            (
+                crm.P190_has_symbolic_content,
+                Literal(
+                    "https://raw.githubusercontent.com/COST-ELTeC/"
+                    "Schemas/master/eltec-1.rng"
+                )
+            )
+        )
+
+        return itertools.chain(
+            x2_triples,
+            x8_triples,
+            eltec_schema_uri
+        )
 
 
 class ELTeCConverter:
