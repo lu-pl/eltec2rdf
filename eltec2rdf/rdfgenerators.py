@@ -2,20 +2,19 @@
 
 import itertools
 
-from collections.abc import Mapping, Iterator
+from collections.abc import Iterator
+from contextlib import suppress
 from types import SimpleNamespace
 
-from lodkit.graph import Graph
 from lodkit.types import _Triple
-# from lodkit.utils import plist
+from lodkit.utils import plist
 from eltec2rdf.utils.utils import plist
 
-from rdflib import Literal, URIRef, Namespace
+from rdflib import Literal, URIRef
 from rdflib.namespace import RDF, RDFS
 from clisn import crm, crmcls, crmdig, lrm
 
 from eltec2rdf.rdfgenerator_abc import RDFGenerator
-from eltec2rdf.extractors import ELTeCBindingsExtractor
 from eltec2rdf.utils.utils import mkuri, uri_ns
 from eltec2rdf.vocabs.vocabs import vocab, VocabLookupException
 from eltec2rdf.models import IDMapping
@@ -61,15 +60,13 @@ class CLSCorGenerator(RDFGenerator):
                     (crm.P190_has_symbolic_content, Literal(f"{work_data.id_value}"))
                 )
 
-                try:
+                with suppress(VocabLookupException):
                     vocab_uri = vocab(work_data.id_type)
                     yield (
                         work_uri,
                         crm.P2_has_type,
                         vocab_uri
                     )
-                except VocabLookupException:
-                    pass
 
                 yield from triples
 
