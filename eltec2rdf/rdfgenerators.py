@@ -46,9 +46,14 @@ class CLSCorGenerator(RDFGenerator):
         uris: SimpleNamespace = uri_ns(
             "e39",
             "x2", "x8",
-            "eltec_schema",
             "f1", "f2", "f3", "f27", "f28"
         )
+
+        schema_level1: str = (
+            "https://raw.githubusercontent.com/COST-ELTeC/"
+            "Schemas/master/eltec-1.rng"
+        )
+        schema_uri: URIRef = mkuri(schema_level1)
 
         def work_id_triples() -> Iterator[_Triple]:
             """Triple iterator for work ID assertions."""
@@ -84,7 +89,7 @@ class CLSCorGenerator(RDFGenerator):
             uris.x8,
             (RDF.type, crmcls.X8_Schema),
             (RDFS.label, Literal("ELTeC Level 1 RNG Schema")),
-            (crm.P1_is_identified_by, uris.eltec_schema),
+            (crm.P1_is_identified_by, schema_uri),
             (crmcls.Y3i_is_schema_of, uris.x2)
         )
 
@@ -135,16 +140,10 @@ class CLSCorGenerator(RDFGenerator):
         )
 
         eltec_schema_uri = plist(
-            uris.eltec_schema,
+            schema_uri,
             (RDF.type, crm.E42_Identifier),
             (RDFS.label, Literal("Link to ELTeC Level 1 RNG Schema")),
-            (
-                crm.P190_has_symbolic_content,
-                Literal(
-                    "https://raw.githubusercontent.com/COST-ELTeC/"
-                    "Schemas/master/eltec-1.rng"
-                )
-            )
+            (crm.P190_has_symbolic_content, Literal(schema_level1))
         )
 
         triples = itertools.chain(
