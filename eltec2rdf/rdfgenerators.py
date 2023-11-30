@@ -92,7 +92,7 @@ class CLSCorGenerator(RDFGenerator):
             uris.f1,
             (RDF.type, lrm.F1_Work),
             (RDFS.label, Literal(f"{self.bindings.work_title} [Work]")),
-            # P1 [E42s from work_id]
+            # P1 [E42s from work_id] (todo)
             (lrm.R16i_was_created_by, uris.f27),
             (lrm.R3_is_realised_in, uris.f2),
             (lrm.R74i_has_expression_used_in, uris.f1)
@@ -130,6 +130,7 @@ class CLSCorGenerator(RDFGenerator):
             (RDF.type, crm.E39_Actor),
             (RDFS.label, Literal(f"{self.bindings.author_name} [Actor]")),
             (crm.P14i_performed, (uris.f27, uris.f28)),
+            # create e41s based on author ids(todo)
             (crm.P1_is_identified_by, tuple(author_ids.keys()))
         )
 
