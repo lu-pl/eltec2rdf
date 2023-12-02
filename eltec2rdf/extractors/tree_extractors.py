@@ -19,11 +19,10 @@ TEIXPath = partial(
 
 
 def _first(seq: Sequence, default: Any = None):
-    """Primitve wrapper for getting the first item or a default.
+    """Get the first item of sequence or a default.
 
     This reduces boilerplate when processing XPath results.
     """
-
     try:
         result = seq[0]
     except IndexError:
