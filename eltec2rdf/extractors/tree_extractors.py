@@ -2,17 +2,34 @@
 
 import re
 
+from collections.abc import Sequence
 from functools import partial
-from typing import Literal
+from typing import Any, Literal, TypeVar
 
 from lxml import etree
-from eltec2rdf.models import vocab_types
+from eltec2rdf.models import vocab_id_types
 
+
+T = TypeVar("T")
 
 TEIXPath = partial(
     etree.XPath,
     namespaces={"tei": "http://www.tei-c.org/ns/1.0"}
 )
+
+
+def _first(seq: Sequence, default: Any = None):
+    """Primitve wrapper for getting the first item or a default.
+
+    This reduces boilerplate when processing XPath results.
+    """
+
+    try:
+        result = seq[0]
+    except IndexError:
+        result = None
+
+    return result
 
 
 def _repr(string: str):
@@ -66,12 +83,14 @@ def _get_title_from_titlestmt(tree: etree._ElementTree) -> str | None:
     return None
 
 
-def _get_id_type(id_value: str, _fail_value=None) -> Literal[*vocab_types] | None:
+def _get_id_type(id_value: str,
+                 _fail_value: T | None = None
+                 ) -> Literal[*vocab_id_types] | T:
     """Primitive callabe for determining the id_type of an id_value.
 
     This merely performs a string containment check lol.
     """
-    for id_type in vocab_types:
+    for id_type in vocab_id_types:
         if id_type in id_value:
             return id_type
 
@@ -104,15 +123,22 @@ def get_work_ids(tree: etree._ElementTree) -> list[dict]:
     If no ids can be retrieved, return an empty dict,
     else the validator will fail.
     """
-    # deu/spa: sourceDesc/bibl/ref/@target; maybe record the bibl type?
-    _work_ids = TEIXPath("//tei:sourceDesc/tei:bibl/tei:ref/@target")(tree)
-    return [
-        {
-            "id_type": _get_id_type(work_id),
-            "id_value": work_id
-        }
-        for work_id in _work_ids
-    ]
+    bibls = TEIXPath("//tei:sourceDesc/tei:bibl")(tree)
+
+    def _work_ids():
+        for bibl in bibls:
+            id_value = _first(TEIXPath("tei:ref/@target")(bibl))
+            if id_value:
+                id_type = _get_id_type(id_value)
+                source_type = _first(TEIXPath("@type")(bibl))
+
+                yield {
+                    "id_value": id_value,
+                    "id_type": id_type,
+                    "source_type": source_type
+                }
+
+    return list(_work_ids())
 
 
 def get_author_ids(tree: etree._ElementTree) -> list[dict]:
