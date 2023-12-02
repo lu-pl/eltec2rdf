@@ -24,21 +24,21 @@ source_types: tuple[str, ...] = (
 
 
 class IDMapping(BaseModel):
-    """Simple model for IDMappings."""
+    """Simple model schema for IDMappings."""
 
     id_type: Literal[vocab_id_types] | None
     id_value: str | None = None
 
 
 class SourceData(IDMapping):
-    """Model for source data extracted from tei:sourceDesc."""
+    """Model schema for source data (tei:sourceDesc)."""
 
     source_type: Literal[source_types]
     # source_type: str
 
 
 class BindingsBaseModel(BaseModel):
-    """BindingsValidator for basic CLSCor bindings."""
+    """Bindings model schema for basic CLSCor conversion."""
 
     model_config = ConfigDict(extra="allow")
 
