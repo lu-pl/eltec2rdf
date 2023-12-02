@@ -84,7 +84,7 @@ def _get_title_from_titlestmt(tree: etree._ElementTree) -> str | None:
 
 def _get_id_type(id_value: str,
                  _fail_value: T | None = None
-                 ) -> Literal[*vocab_id_types] | T:
+                 ) -> Literal[vocab_id_types] | T:
     """Primitive callabe for determining the id_type of an id_value.
 
     This merely performs a string containment check lol.
@@ -129,7 +129,7 @@ def get_work_ids(tree: etree._ElementTree) -> list[dict]:
             id_value = _first(TEIXPath("tei:ref/@target")(bibl))
             if id_value:
                 id_type = _get_id_type(id_value)
-                source_type = _first(TEIXPath("@type")(bibl))
+                source_type = _repr(_first(TEIXPath("@type")(bibl)))
 
                 yield {
                     "id_value": id_value,
