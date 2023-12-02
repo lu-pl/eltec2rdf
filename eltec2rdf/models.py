@@ -26,15 +26,14 @@ source_types: tuple[str, ...] = (
 class IDMapping(BaseModel):
     """Simple model schema for IDMappings."""
 
-    id_type: Literal[vocab_id_types] | None
+    id_type: Literal[vocab_id_types] | None  # type: ignore
     id_value: str | None = None
 
 
 class SourceData(IDMapping):
     """Model schema for source data (tei:sourceDesc)."""
 
-    source_type: Literal[source_types]
-    # source_type: str
+    source_type: Literal[source_types]  # type: ignore
 
 
 class BindingsBaseModel(BaseModel):
