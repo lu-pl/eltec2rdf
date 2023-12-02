@@ -19,7 +19,6 @@ vocab_id_types: list[str] = list(
 class IDMapping(BaseModel):
     """Simple model for IDMappings."""
 
-    # work_type: Literal[]
     id_type: Literal[*vocab_id_types] | None = None
     id_value: str | None = None
 
