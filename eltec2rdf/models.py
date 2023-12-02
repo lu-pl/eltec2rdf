@@ -6,17 +6,21 @@ from typing import Literal
 from rdflib.namespace import RDFS
 from pydantic import BaseModel, ConfigDict
 
-from eltec2rdf.vocabs.vocabs import vocab_graph
+import lodkit.importer
+from eltec2rdf.vocabs import identifier
 
 
 # better list cast here, else the iterator will likely be exhausted somewhere
-vocab_types: list[str] = list(map(str, vocab_graph.objects(None, RDFS.label)))
+vocab_id_types: list[str] = list(
+    map(str, identifier.objects(None, RDFS.label))
+)
 
 
 class IDMapping(BaseModel):
     """Simple model for IDMappings."""
 
-    id_type: Literal[*vocab_types] | None = None
+    # work_type: Literal[]
+    id_type: Literal[*vocab_id_types] | None = None
     id_value: str | None = None
 
 
