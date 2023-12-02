@@ -4,6 +4,7 @@ import collections
 
 from dataclasses import dataclass, InitVar
 from urllib.request import urlretrieve
+from urllib.parse import quote
 from pathlib import Path
 
 from lxml import etree
@@ -37,9 +38,19 @@ class ELTeCBindingsExtractor(collections.UserDict):
 
     def __init__(self, eltec_url: str) -> None:
         """Initialize a BindingExtractor object."""
-        self._eltec_url = eltec_url
+        self._eltec_url = self._quote_iri(eltec_url)
         self._eltec_path = ELTeCPath(eltec_url)
         self.data = self._generate_bindings()
+
+    def _quote_iri(self, eltec_url: str) -> str:
+        """Parse and ascii quote IRIs for processing."""
+        parts = eltec_url.split("/")
+        path = parts.pop()
+        parts += [quote(path)]
+
+        quoted_iri = "/".join(parts)
+
+        return quoted_iri
 
     def _generate_bindings(self) -> dict:
         """Construct kwarg bindings for RDF generation."""
