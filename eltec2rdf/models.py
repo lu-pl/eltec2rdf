@@ -11,29 +11,30 @@ from eltec2rdf.vocabs import identifier
 
 
 # better list cast here, else the iterator will likely be exhausted somewhere
-vocab_id_types: list[str] = list(
+vocab_id_types: tuple[str, ...] = tuple(
     map(str, identifier.objects(None, RDFS.label))
 )
 
-source_types: list[str] = [
+source_types: tuple[str, ...] = (
     "firstEdition",
     "printSource",
     "digitalSource",
     "unspecified"
-]
+)
 
 
 class IDMapping(BaseModel):
     """Simple model for IDMappings."""
 
-    id_type: Literal[*vocab_id_types] | None = None
+    id_type: Literal[vocab_id_types] | None
     id_value: str | None = None
 
 
 class SourceData(IDMapping):
     """Model for source data extracted from tei:sourceDesc."""
 
-    source_type: Literal[*source_types]
+    source_type: Literal[source_types]
+    # source_type: str
 
 
 class BindingsBaseModel(BaseModel):
