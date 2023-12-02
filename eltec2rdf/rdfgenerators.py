@@ -17,7 +17,7 @@ from clisn import crm, crmcls, crmdig, lrm
 from eltec2rdf.rdfgenerator_abc import RDFGenerator
 from eltec2rdf.utils.utils import mkuri, uri_ns
 from eltec2rdf.vocabs.vocabs import vocab, VocabLookupException
-from eltec2rdf.models import IDMapping
+from eltec2rdf.models import IDMapping, SourceData
 
 
 class CLSCorGenerator(RDFGenerator):
@@ -27,13 +27,14 @@ class CLSCorGenerator(RDFGenerator):
         """Generate triples from an ELTeC resource."""
         # add eltec repo id to work_ids
         self.bindings.work_ids.append(
-            IDMapping(
+            SourceData(
                 id_type=None,
-                id_value=self.bindings.file_stem
+                id_value=self.bindings.file_stem,
+                source_type="digitalSource"
             )
         )
 
-        work_ids: dict[URIRef, dict] = {
+        work_ids: dict[URIRef, SourceData] = {
             mkuri(): ids
             for ids in self.bindings.work_ids
         }
@@ -44,8 +45,8 @@ class CLSCorGenerator(RDFGenerator):
         }
 
         uris: SimpleNamespace = uri_ns(
-            "e39",
             "x2", "x8",
+            "e39", "e35",
             "f1", "f2", "f3", "f27", "f28"
         )
 
@@ -54,6 +55,7 @@ class CLSCorGenerator(RDFGenerator):
             "Schemas/master/eltec-1.rng"
         )
         schema_uri: URIRef = mkuri(schema_level1)
+        e55_title_uri: URIRef = mkuri("ELTeC title")
 
         def work_id_triples() -> Iterator[_Triple]:
             """Triple iterator for work ID assertions."""
@@ -75,24 +77,6 @@ class CLSCorGenerator(RDFGenerator):
 
                 yield from triples
 
-        x2_triples = plist(
-            uris.x2,
-            (RDF.type, crmcls.X2_Corpus_Document),
-            (RDFS.label, Literal(f"{self.bindings.work_title} [TEI Document]")),
-            (crm.P1_is_identified_by, tuple(work_ids.keys())),
-            (lrm.R4_embodies, uris.f2),
-            (crmcls.Y2_has_format, vocab("TEI")),
-            (crmcls.Y3_adheres_to_schema, uris.x8)
-        )
-
-        x8_triples = plist(
-            uris.x8,
-            (RDF.type, crmcls.X8_Schema),
-            (RDFS.label, Literal("ELTeC Level 1 RNG Schema")),
-            (crm.P1_is_identified_by, schema_uri),
-            (crmcls.Y3i_is_schema_of, uris.x2)
-        )
-
         f1_triples = plist(
             uris.f1,
             (RDF.type, lrm.F1_Work),
@@ -107,9 +91,30 @@ class CLSCorGenerator(RDFGenerator):
             uris.f2,
             (RDF.type, lrm.F2_Expression),
             (RDFS.label, Literal(f"{self.bindings.work_title} [Expression]")),
+            (crm.P102_has_title, uris.e35),
             (lrm.R3i_realises, uris.f1),
             (lrm.R17i_was_created_by, uris.f28),
             (lrm.R4i_is_embodied_in, uris.x2)  # and f3s (todo)
+        )
+
+        x2_triples = plist(
+            uris.x2,
+            (RDF.type, crmcls.X2_Corpus_Document),
+            (RDFS.label, Literal(f"{self.bindings.work_title} [TEI Document]")),
+            (crm.P1_is_identified_by, tuple(work_ids.keys())),
+            (lrm.R4_embodies, uris.f2),
+            (crmcls.Y2_has_format, vocab("TEI")),
+            (crmcls.Y3_adheres_to_schema, uris.x8)
+        )
+
+        # f3_triples
+
+        x8_triples = plist(
+            uris.x8,
+            (RDF.type, crmcls.X8_Schema),
+            (RDFS.label, Literal("ELTeC Level 1 RNG Schema")),
+            (crm.P1_is_identified_by, schema_uri),
+            (crmcls.Y3i_is_schema_of, uris.x2)
         )
 
         f27_triples = plist(
@@ -130,6 +135,28 @@ class CLSCorGenerator(RDFGenerator):
             (lrm.R17_created, uris.f2)
         )
 
+        e35_triples = plist(
+            uris.e35,
+            (RDF.type, crm.E35_Title),
+            (crm.P102i_is_title_of, uris.f2),
+            (crm.P2_has_type, e55_title_uri),
+            (
+                RDFS.label,
+                Literal(f"{self.bindings.work_title} [Title of Expression]")
+            ),
+            (
+                crm.p190_has_symbolic_content,
+                Literal(f"{self.bindings.work_title}")
+            )
+        )
+
+        e55_title_triples = plist(
+            e55_title_uri,
+            (RDF.type, crm.E55_Type),
+            (RDFS.label, Literal("ELTeC Work Title")),
+            (crm.P2i_is_type_of, uris.e35)
+        )
+
         e39_triples = plist(
             uris.e39,
             (RDF.type, crm.E39_Actor),
@@ -147,13 +174,15 @@ class CLSCorGenerator(RDFGenerator):
         )
 
         triples = itertools.chain(
-            x2_triples,
-            x8_triples,
             f1_triples,
             f2_triples,
+            x2_triples,
+            x8_triples,
             f27_triples,
             f28_triples,
+            e35_triples,
             e39_triples,
+            e55_title_triples,
             eltec_schema_uri,
             work_id_triples()
         )
