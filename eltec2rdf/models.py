@@ -15,12 +15,25 @@ vocab_id_types: list[str] = list(
     map(str, identifier.objects(None, RDFS.label))
 )
 
+source_types: list[str] = [
+    "firstEdition",
+    "printSource",
+    "digitalSource",
+    "unspecified"
+]
+
 
 class IDMapping(BaseModel):
     """Simple model for IDMappings."""
 
     id_type: Literal[*vocab_id_types] | None = None
     id_value: str | None = None
+
+
+class SourceData(IDMapping):
+    """Model for source data extracted from tei:sourceDesc."""
+
+    source_type: Literal[*source_types]
 
 
 class BindingsBaseModel(BaseModel):
@@ -33,4 +46,4 @@ class BindingsBaseModel(BaseModel):
     author_name: str
 
     author_ids: list[IDMapping] | None = None
-    work_ids: list[IDMapping] | None = None
+    work_ids: list[SourceData] | None = None
