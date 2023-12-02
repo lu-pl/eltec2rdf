@@ -46,7 +46,7 @@ class ELTeCBindingsExtractor(collections.UserDict):
         """Parse and ascii quote IRIs for processing."""
         parts = eltec_url.split("/")
         path = parts.pop()
-        parts += [quote(path)]
+        parts.append(quote(path))
 
         quoted_iri = "/".join(parts)
 
