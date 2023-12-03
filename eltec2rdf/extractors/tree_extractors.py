@@ -98,7 +98,7 @@ def get_work_title(tree: etree._ElementTree) -> str | None:
 def get_author_name(tree: etree._ElementTree) -> str:
     """Extract the author name from tei:titleStmt."""
     _name = TEIXPath("//tei:titleStmt/tei:author/text()")(tree)
-    return trim(_name)
+    return trim(first(_name))
 
 
 def get_work_ids(tree: etree._ElementTree) -> list[dict]:
