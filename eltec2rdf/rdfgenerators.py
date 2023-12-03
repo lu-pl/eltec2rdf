@@ -101,13 +101,48 @@ class CLSCorGenerator(RDFGenerator):
             uris.x2,
             (RDF.type, crmcls.X2_Corpus_Document),
             (RDFS.label, Literal(f"{self.bindings.work_title} [TEI Document]")),
-            (crm.P1_is_identified_by, tuple(work_ids.keys())),
+            # todo: this is wrong, X2 is identified by the raw gh link
+            # (crm.P1_is_identified_by, tuple(work_ids.keys())),
             (lrm.R4_embodies, uris.f2),
             (crmcls.Y2_has_format, vocab("TEI")),
             (crmcls.Y3_adheres_to_schema, uris.x8)
         )
 
-        # f3_triples
+        def work_id_triples() -> Iterator[_Triple]:
+            """Triple iterator for work ID E42 assertions."""
+            for work_uri, work_data in work_ids.items():
+                triples = plist(
+                    work_uri,
+                    (RDF.type, crm.E42_Identifier),
+                    (RDFS.label, Literal(f"{self.bindings.work_title} [ID]")),
+                    (crm.P190_has_symbolic_content, Literal(f"{work_data.id_value}"))
+                )
+
+                with suppress(VocabLookupException):
+                    vocab_uri = vocab(work_data.id_type)
+                    yield (
+                        work_uri,
+                        crm.P2_has_type,
+                        vocab_uri
+                    )
+
+                yield from triples
+
+        def f3_triples() -> Iterator[_Triple]:
+            """Triple iterator for F3 generation based on work_ids."""
+            for work_uri, *_ in work_ids.items():
+                f3_triples = plist(
+                    mkuri(),
+                    (RDF.type, lrm.F3_Manifestation),
+                    (
+                        RDFS.label,
+                        Literal(f"{self.bindings.work_title} [Manifestation]")
+                    ),
+                    (crm.P1_is_identified_by, work_uri),
+                    (lrm.R4_embodies, uris.f2),
+                )
+
+                yield from f3_triples
 
         x8_triples = plist(
             uris.x8,
