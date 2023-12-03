@@ -7,36 +7,22 @@ from functools import partial
 from typing import Any, Literal, TypeVar
 
 from lxml import etree
+
 from eltec2rdf.models import vocab_id_types
+from eltec2rdf.utils.utils import first, trim
 
 
 T = TypeVar("T")
 
 TEIXPath = partial(
     etree.XPath,
-    namespaces={"tei": "http://www.tei-c.org/ns/1.0"}
+    namespaces={
+        "tei": "http://www.tei-c.org/ns/1.0"
+    }
 )
 
 
-def _first(seq: Sequence, default: Any = None):
-    """Get the first item of sequence or a default.
-
-    This reduces boilerplate when processing XPath results.
-    """
-    try:
-        result = seq[0]
-    except IndexError:
-        result = None
-
-    return result
-
-
-def _repr(string: str):
-    """Sanitize strings by eliminating superfluous whitespace."""
-    return re.sub(r"\s{2,}", " ", "".join(string)).strip()
-
-
-def _repr_title_stmt(value: str) -> str:
+def _trim_title_stmt(value: str) -> str:
     """Sanitize strings extracted from tei:titleStmts."""
     re_result = re.sub(
         string=value,
@@ -45,7 +31,7 @@ def _repr_title_stmt(value: str) -> str:
         flags=re.I
     )
 
-    return _repr(re_result)
+    return trim(re_result)
 
 
 def _digital_source(partial_xpath: str):
@@ -63,7 +49,7 @@ def _get_title_from_sourcedesc(tree: etree._ElementTree) -> str | None:
     xpath_result = TEIXPath(_digital_source("tei:title/text()"))(tree)
 
     if xpath_result:
-        return _repr(xpath_result[0])
+        return trim(xpath_result[0])
 
     return None
 
@@ -77,7 +63,7 @@ def _get_title_from_titlestmt(tree: etree._ElementTree) -> str | None:
 
     if xpath_result:
         _title = xpath_result[0]
-        return _repr_title_stmt(_title)
+        return _trim_title_stmt(_title)
 
     return None
 
@@ -112,7 +98,7 @@ def get_work_title(tree: etree._ElementTree) -> str | None:
 def get_author_name(tree: etree._ElementTree) -> str:
     """Extract the author name from tei:titleStmt."""
     _name = TEIXPath("//tei:titleStmt/tei:author/text()")(tree)
-    return _repr(_name)
+    return trim(_name)
 
 
 def get_work_ids(tree: etree._ElementTree) -> list[dict]:
@@ -126,10 +112,10 @@ def get_work_ids(tree: etree._ElementTree) -> list[dict]:
 
     def _work_ids():
         for bibl in bibls:
-            id_value = _first(TEIXPath("tei:ref/@target")(bibl))
+            id_value = first(TEIXPath("tei:ref/@target")(bibl))
             if id_value:
                 id_type = _get_id_type(id_value)
-                source_type = _repr(_first(TEIXPath("@type")(bibl)))
+                source_type = trim(first(TEIXPath("@type")(bibl)))
 
                 yield {
                     "id_value": id_value,

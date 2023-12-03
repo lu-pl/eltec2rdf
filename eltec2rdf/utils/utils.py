@@ -1,8 +1,10 @@
 """Miscellaneous utilies for eltec2rdf."""
 
+import contextlib
 import hashlib
+import re
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from itertools import repeat
 from typing import TypeVar, Optional
 from types import SimpleNamespace
@@ -14,6 +16,24 @@ from lodkit.types import _Triple, _TripleObject
 
 
 T = TypeVar("T")
+TDefault = TypeVar("TDefault")
+
+
+def first(seq: Sequence[T],
+          default: TDefault | None = None) -> T | TDefault | None:
+    """Try to return the first item of a Sequence.
+
+    If index lookup fails, return a default value.
+    """
+    with contextlib.suppress(Exception):
+        return seq[0]
+    return default
+
+
+def trim(string: str) -> str:
+    """Remove leading, trailing and generally superfluous whitespace."""
+    trimmed = re.sub(r"\s{2,}", " ", string).strip()
+    return trimmed
 
 
 def _or(*operands: Callable[..., T],
@@ -30,6 +50,7 @@ def _or(*operands: Callable[..., T],
     for operand in operands:
         if result := operand(*args, **kwargs):
             return result
+    return None
 
 
 def mkuri(
