@@ -17,7 +17,7 @@ from clisn import crm, crmcls, crmdig, lrm
 from eltec2rdf.rdfgenerator_abc import RDFGenerator
 from eltec2rdf.utils.utils import mkuri, uri_ns
 from eltec2rdf.vocabs.vocabs import vocab, VocabLookupException
-from eltec2rdf.models import IDMapping, SourceData
+from eltec2rdf.models import SourceData
 
 
 class CLSCorGenerator(RDFGenerator):
@@ -29,6 +29,11 @@ class CLSCorGenerator(RDFGenerator):
             mkuri(): ids
             for ids in self.bindings.work_ids
         }
+
+        f3_uris: list[URIRef] = [
+            mkuri()
+            for ids in self.bindings.work_ids
+        ]
 
         author_ids: dict[URIRef, dict] = {
             mkuri(): ids
@@ -68,7 +73,7 @@ class CLSCorGenerator(RDFGenerator):
             (crm.P102_has_title, uris.e35),
             (lrm.R3i_realises, uris.f1),
             (lrm.R17i_was_created_by, uris.f28),
-            (lrm.R4i_is_embodied_in, uris.x2)  # and f3s (todo)
+            (lrm.R4i_is_embodied_in, (uris.x2, *f3_uris))  # and f3s (todo)
         )
 
         x2_triples = plist(
@@ -84,9 +89,9 @@ class CLSCorGenerator(RDFGenerator):
 
         def work_id_triples() -> Iterator[_Triple]:
             """Triple iterator for work ID E42 assertions."""
-            for work_uri, work_data in work_ids.items():
+            for e42_uri, work_data in work_ids.items():
                 triples = plist(
-                    work_uri,
+                    e42_uri,
                     (RDF.type, crm.E42_Identifier),
                     (RDFS.label, Literal(f"{self.bindings.work_title} [ID]")),
                     (crm.P190_has_symbolic_content, Literal(f"{work_data.id_value}"))
@@ -95,7 +100,7 @@ class CLSCorGenerator(RDFGenerator):
                 with suppress(VocabLookupException):
                     vocab_uri = vocab(work_data.id_type)
                     yield (
-                        work_uri,
+                        e42_uri,
                         crm.P2_has_type,
                         vocab_uri
                     )
@@ -104,15 +109,15 @@ class CLSCorGenerator(RDFGenerator):
 
         def f3_triples() -> Iterator[_Triple]:
             """Triple iterator for F3 generation based on work_ids."""
-            for work_uri, *_ in work_ids.items():
+            for f3_uri, e42_uri in zip(f3_uris, work_ids):
                 f3_triples = plist(
-                    mkuri(),
+                    f3_uri,
                     (RDF.type, lrm.F3_Manifestation),
                     (
                         RDFS.label,
                         Literal(f"{self.bindings.work_title} [Manifestation]")
                     ),
-                    (crm.P1_is_identified_by, work_uri),
+                    (crm.P1_is_identified_by, e42_uri),
                     (lrm.R4_embodies, uris.f2),
                 )
 
