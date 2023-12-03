@@ -41,8 +41,8 @@ class CLSCorGenerator(RDFGenerator):
         }
 
         uris: SimpleNamespace = uri_ns(
-            "x2", "x8",
             "e39", "e35",
+            "x2", "x8", "x2_e42",
             "f1", "f2", "f3", "f27", "f28"
         )
 
@@ -52,15 +52,13 @@ class CLSCorGenerator(RDFGenerator):
             "Schemas/master/eltec-1.rng"
         )
         schema_uri: URIRef = mkuri(schema_level1)
-        e55_title_uri: URIRef = mkuri("ELTeC title")
+        e55_eltec_title_uri: URIRef = mkuri("ELTeC title")
+        e55_eltec_id_uri: URIRef = mkuri("ELTeC id")
 
         f1_triples = plist(
             uris.f1,
             (RDF.type, lrm.F1_Work),
             (RDFS.label, Literal(f"{self.bindings.work_title} [Work]")),
-            # actually I do not currently extract an E42 for the /work/ (F1);
-            # only for /sources/ (F3)!
-            # P1 [E42s from work_id] (todo)
             (lrm.R16i_was_created_by, uris.f27),
             (lrm.R3_is_realised_in, uris.f2),
             (lrm.R74i_has_expression_used_in, uris.f1)
@@ -80,11 +78,18 @@ class CLSCorGenerator(RDFGenerator):
             uris.x2,
             (RDF.type, crmcls.X2_Corpus_Document),
             (RDFS.label, Literal(f"{self.bindings.work_title} [TEI Document]")),
-            # todo: this is wrong, X2 is identified by the raw gh link
-            # (crm.P1_is_identified_by, tuple(work_ids.keys())),
+            (crm.P1_is_identified_by, uris.x2_e42),
             (lrm.R4_embodies, uris.f2),
             (crmcls.Y2_has_format, vocab("TEI")),
             (crmcls.Y3_adheres_to_schema, uris.x8)
+        )
+
+        x2_e42_triples = plist(
+            uris.x2_e42,
+            (RDF.type, crm.E42_Identifier),
+            (RDFS.label, Literal(f"{self.bindings.work_title} [ELTeC ID]")),
+            (crm.P190_has_symbolic_content, Literal(f"{self.bindings.file_stem}")),
+            (crm.P2_has_type, e55_eltec_id_uri)
         )
 
         def work_id_triples() -> Iterator[_Triple]:
@@ -154,7 +159,7 @@ class CLSCorGenerator(RDFGenerator):
             uris.e35,
             (RDF.type, crm.E35_Title),
             (crm.P102i_is_title_of, uris.f2),
-            (crm.P2_has_type, e55_title_uri),
+            (crm.P2_has_type, e55_eltec_title_uri),
             (
                 RDFS.label,
                 Literal(f"{self.bindings.work_title} [Title of Expression]")
@@ -175,8 +180,8 @@ class CLSCorGenerator(RDFGenerator):
         )
 
         # todo: singleton (type)
-        e55_title_triples = plist(
-            e55_title_uri,
+        e55_eltec_title_triples = plist(
+            e55_eltec_title_uri,
             (RDF.type, crm.E55_Type),
             (RDFS.label, Literal("ELTeC Work Title")),
             (crm.P2i_is_type_of, uris.e35)
@@ -190,17 +195,27 @@ class CLSCorGenerator(RDFGenerator):
             (crm.P190_has_symbolic_content, Literal(schema_level1))
         )
 
+        # todo: singleton (type)
+        e55_eltec_id_triples = plist(
+            e55_eltec_id_uri,
+            (RDF.type, crm.E55_Type),
+            (RDFS.label, Literal("ELTeC Corpus Document ID")),
+            (crm.P2i_is_type_of, uris.x2_e42)
+        )
+
         triples = itertools.chain(
             f1_triples,
             f2_triples,
             x2_triples,
+            x2_e42_triples,
             f3_triples(),
             x8_triples,
             f27_triples,
             f28_triples,
             e35_triples,
             e39_triples,
-            e55_title_triples,
+            e55_eltec_title_triples,
+            e55_eltec_id_triples,
             eltec_schema_uri,
             work_id_triples()
         )
