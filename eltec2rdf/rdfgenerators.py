@@ -25,15 +25,6 @@ class CLSCorGenerator(RDFGenerator):
 
     def generate_triples(self) -> Iterator[_Triple]:
         """Generate triples from an ELTeC resource."""
-        # add eltec repo id to work_ids
-        self.bindings.work_ids.append(
-            SourceData(
-                id_type=None,
-                id_value=self.bindings.file_stem,
-                source_type="digitalSource"
-            )
-        )
-
         work_ids: dict[URIRef, SourceData] = {
             mkuri(): ids
             for ids in self.bindings.work_ids
@@ -50,6 +41,7 @@ class CLSCorGenerator(RDFGenerator):
             "f1", "f2", "f3", "f27", "f28"
         )
 
+        # todo: singleton (type)
         schema_level1: str = (
             "https://raw.githubusercontent.com/COST-ELTeC/"
             "Schemas/master/eltec-1.rng"
@@ -57,30 +49,12 @@ class CLSCorGenerator(RDFGenerator):
         schema_uri: URIRef = mkuri(schema_level1)
         e55_title_uri: URIRef = mkuri("ELTeC title")
 
-        def work_id_triples() -> Iterator[_Triple]:
-            """Triple iterator for work ID assertions."""
-            for work_uri, work_data in work_ids.items():
-                triples = plist(
-                    work_uri,
-                    (RDF.type, crm.E42_Identifier),
-                    (RDFS.label, Literal(f"{self.bindings.work_title} [ID]")),
-                    (crm.P190_has_symbolic_content, Literal(f"{work_data.id_value}"))
-                )
-
-                with suppress(VocabLookupException):
-                    vocab_uri = vocab(work_data.id_type)
-                    yield (
-                        work_uri,
-                        crm.P2_has_type,
-                        vocab_uri
-                    )
-
-                yield from triples
-
         f1_triples = plist(
             uris.f1,
             (RDF.type, lrm.F1_Work),
             (RDFS.label, Literal(f"{self.bindings.work_title} [Work]")),
+            # actually I do not currently extract an E42 for the /work/ (F1);
+            # only for /sources/ (F3)!
             # P1 [E42s from work_id] (todo)
             (lrm.R16i_was_created_by, uris.f27),
             (lrm.R3_is_realised_in, uris.f2),
@@ -155,6 +129,7 @@ class CLSCorGenerator(RDFGenerator):
         f27_triples = plist(
             uris.f27,
             (RDF.type, lrm.F27_Work_Creation),
+            (RDFS.label, Literal(f"{self.bindings.work_title} [Work Creation]")),
             (crm.P14_carried_out_by, uris.e39),
             (lrm.R16_created, uris.f1)
         )
@@ -185,13 +160,6 @@ class CLSCorGenerator(RDFGenerator):
             )
         )
 
-        e55_title_triples = plist(
-            e55_title_uri,
-            (RDF.type, crm.E55_Type),
-            (RDFS.label, Literal("ELTeC Work Title")),
-            (crm.P2i_is_type_of, uris.e35)
-        )
-
         e39_triples = plist(
             uris.e39,
             (RDF.type, crm.E39_Actor),
@@ -201,6 +169,15 @@ class CLSCorGenerator(RDFGenerator):
             (crm.P1_is_identified_by, tuple(author_ids.keys()))
         )
 
+        # todo: singleton (type)
+        e55_title_triples = plist(
+            e55_title_uri,
+            (RDF.type, crm.E55_Type),
+            (RDFS.label, Literal("ELTeC Work Title")),
+            (crm.P2i_is_type_of, uris.e35)
+        )
+
+        # todo: singleton (type)
         eltec_schema_uri = plist(
             schema_uri,
             (RDF.type, crm.E42_Identifier),
@@ -212,6 +189,7 @@ class CLSCorGenerator(RDFGenerator):
             f1_triples,
             f2_triples,
             x2_triples,
+            f3_triples(),
             x8_triples,
             f27_triples,
             f28_triples,
