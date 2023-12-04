@@ -7,12 +7,11 @@ from contextlib import suppress
 from types import SimpleNamespace
 
 from lodkit.types import _Triple
-from lodkit.utils import plist
 from eltec2rdf.utils.utils import plist
 
 from rdflib import Literal, URIRef
 from rdflib.namespace import RDF, RDFS
-from clisn import crm, crmcls, crmdig, lrm
+from clisn import crm, crmcls, lrm
 
 from eltec2rdf.rdfgenerator_abc import RDFGenerator
 from eltec2rdf.utils.utils import mkuri, uri_ns
