@@ -40,7 +40,7 @@ class CLSCorGenerator(RDFGenerator):
         }
 
         uris: SimpleNamespace = uri_ns(
-            "e39", "e35",
+            "e39", "e35", "e39_e42",
             "x2", "x2_e42",
             "f1", "f2", "f3", "f27", "f28"
         )
@@ -51,8 +51,11 @@ class CLSCorGenerator(RDFGenerator):
             "Schemas/master/eltec-1.rng"
         )
         schema_uri: URIRef = mkuri(schema_level1)
-        e55_eltec_title_uri: URIRef = mkuri("ELTeC title")
-        e55_eltec_id_uri: URIRef = mkuri("ELTeC id")
+
+        e55_eltec_title_uri: URIRef = mkuri("ELTeC Title")
+        e55_eltec_id_uri: URIRef = mkuri("ELTeC ID")
+        e55_eltec_author_name_uri: URIRef = mkuri("ELTeC Author Name")
+
         x1_uri: URIRef = mkuri("ELTeC")
         x8_uri: URIRef = mkuri("ELTeC Level 1 Schema")
 
@@ -196,8 +199,39 @@ class CLSCorGenerator(RDFGenerator):
             (RDFS.label, Literal(f"{self.bindings.author_name} [Actor]")),
             (crm.P14i_performed, (uris.f27, uris.f28)),
             # create e41s based on author ids(todo)
-            (crm.P1_is_identified_by, tuple(author_ids.keys()))
+            (crm.P1_is_identified_by, (*author_ids.keys(), uris.e39_e42))
         )
+
+        e39_e42_triples = plist(
+            uris.e39_e42,
+            (RDF.type, crm.E41_Appellation),
+            (RDFS.label, Literal("ELTeC Author Name [Appellation]")),
+            (
+                crm.P190_has_symbolic_content,
+                Literal(f"{self.bindings.author_name} [ELTeC Author Name]")
+            ),
+            (crm.P2_has_type, e55_eltec_author_name_uri),
+            (crm.P1i_identifies, uris.e39)
+        )
+
+        def e39_e41_triples():
+            for e41_uri, author_id in author_ids.items():
+                e41_triples = plist(
+                    e41_uri,
+                    (RDF.type, crm.E42_Identifier),
+                    (RDFS.label, Literal(f"{self.bindings.author_name} [ID]")),
+                    (crm.P190_has_symbolic_content, Literal(f"{author_id.id_value}"))
+                )
+
+                with suppress(VocabLookupException):
+                    vocab_uri = vocab(author_id.id_type)
+                    yield (
+                        e41_uri,
+                        crm.P2_has_type,
+                        vocab_uri
+                    )
+
+                yield from e41_triples
 
         # todo: singleton (type)
         e55_eltec_title_triples = plist(
@@ -208,7 +242,7 @@ class CLSCorGenerator(RDFGenerator):
         )
 
         # todo: singleton (type)
-        eltec_schema_uri = plist(
+        eltec_schema_triples = plist(
             schema_uri,
             (RDF.type, crm.E42_Identifier),
             (RDFS.label, Literal("Link to ELTeC Level 1 RNG Schema")),
@@ -223,21 +257,31 @@ class CLSCorGenerator(RDFGenerator):
             (crm.P2i_is_type_of, uris.x2_e42)
         )
 
+        e55_eltec_author_name_triples = plist(
+            e55_eltec_author_name_uri,
+            (RDF.type, crm.E55_Type),
+            (RDFS.label, Literal("ELTeC Author Name")),
+            (crm.P2i_is_type_of, uris.e39_e42)
+        )
+
         triples = itertools.chain(
             f1_triples,
             f2_triples,
             x1_triples,
             x2_triples,
             x2_e42_triples,
-            f3_triples(),
             x8_triples,
+            f3_triples(),
             f27_triples,
             f28_triples,
             e35_triples,
             e39_triples,
+            e39_e42_triples,
+            e39_e41_triples(),
             e55_eltec_title_triples,
             e55_eltec_id_triples,
-            eltec_schema_uri,
+            e55_eltec_author_name_triples,
+            eltec_schema_triples,
             work_id_triples()
         )
 
