@@ -14,7 +14,7 @@ from rdflib.namespace import RDF, RDFS
 from clisn import crm, crmcls, lrm
 
 from eltec2rdf.rdfgenerator_abc import RDFGenerator
-from eltec2rdf.utils.utils import mkuri, uri_ns
+from eltec2rdf.utils.utils import mkuri, uri_ns, resolve_source_type
 from eltec2rdf.vocabs.vocabs import vocab, VocabLookupException
 from eltec2rdf.models import SourceData
 
@@ -114,7 +114,8 @@ class CLSCorGenerator(RDFGenerator):
 
         def f3_triples() -> Iterator[_Triple]:
             """Triple iterator for F3 generation based on work_ids."""
-            for f3_uri, e42_uri in zip(f3_uris, work_ids):
+            for f3_uri, (e42_uri, work_data) in zip(f3_uris, work_ids.items()):
+
                 f3_triples = plist(
                     f3_uri,
                     (RDF.type, lrm.F3_Manifestation),
@@ -125,6 +126,17 @@ class CLSCorGenerator(RDFGenerator):
                     (crm.P1_is_identified_by, e42_uri),
                     (lrm.R4_embodies, uris.f2),
                 )
+
+                with suppress(VocabLookupException):
+                    source_type: str = resolve_source_type(
+                        work_data.source_type
+                    )
+                    vocab_uri = vocab(source_type)
+                    yield (
+                        f3_uri,
+                        crm.P2_has_type,
+                        vocab_uri
+                    )
 
                 yield from f3_triples
 
