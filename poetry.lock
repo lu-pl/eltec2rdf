@@ -197,13 +197,13 @@ files = [
 
 [[package]]
 name = "clisn"
-version = "0.1.2"
+version = "0.1.3"
 description = ""
 optional = false
 python-versions = ">=3.11,<4.0"
 files = [
-    {file = "clisn-0.1.2-py3-none-any.whl", hash = "sha256:1456db3eb6896c5d1f60462aeb5491066b03c19c502b741830c46c7425baa68e"},
-    {file = "clisn-0.1.2.tar.gz", hash = "sha256:bf2632312a2937e225faed3d2b9cb4e77327777c233e108f2a2964f95fd7934c"},
+    {file = "clisn-0.1.3-py3-none-any.whl", hash = "sha256:96ffcf6ac3b08c33209927e0c66cc427e7e306feba4c921d27674b6027b0aa17"},
+    {file = "clisn-0.1.3.tar.gz", hash = "sha256:a78145a3b374ab4de8ad9bccf6e60701c1753c9116122eb0996133b424ff899c"},
 ]
 
 [package.dependencies]
