@@ -3,6 +3,7 @@
 import contextlib
 import hashlib
 import re
+import functools
 
 from collections.abc import Callable, Iterator, Sequence
 from itertools import repeat
@@ -17,6 +18,19 @@ from lodkit.types import _Triple, _TripleObject
 
 T = TypeVar("T")
 TDefault = TypeVar("TDefault")
+
+
+def resolve_source_type(source_type: str, join_value=" ") -> str:
+    """Resolve source_type data for vocabs lookup.
+
+    Split a camelCase string and join it using join_value.
+    """
+    resolved = functools.reduce(
+        lambda x, y: f"{x.lower()}{join_value}" + y.lower(),
+        re.split('(?<=[a-z])(?=[A-Z])', source_type)
+    )
+
+    return resolved
 
 
 def first(seq: Sequence[T],
