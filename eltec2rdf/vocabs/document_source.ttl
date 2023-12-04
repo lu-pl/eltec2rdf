@@ -1,0 +1,49 @@
+@prefix crm: <http://www.cidoc-crm.org/cidoc-crm/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://clscor.io/entity/type/document_source/digital> a crm:E55_Type,
+        skos:Concept ;
+    rdfs:label "digital source" ;
+    crm:P71i_is_listed_in <https://clscor.io/entity/type/document_source> ;
+    skos:definition "ELTeC schema definition: \"describes a digital edition used as the source of the encoding  which may be derived from the first or another print edition\"" ;
+    skos:inScheme <https://clscor.io/entity/type/document_source> ;
+    skos:prefLabel "digital" .
+
+<https://clscor.io/entity/type/document_source/first_edition> a crm:E55_Type,
+        skos:Concept ;
+    rdfs:label "first edition" ;
+    crm:P71i_is_listed_in <https://clscor.io/entity/type/document_source> ;
+    skos:definition "ELTeC schema definition: \"describes the first complete print source edition published in the author's lifetime\"" ;
+    skos:inScheme <https://clscor.io/entity/type/document_source> ;
+    skos:prefLabel "first edition" .
+
+<https://clscor.io/entity/type/document_source/print> a crm:E55_Type,
+        skos:Concept ;
+    rdfs:label "print source" ;
+    crm:P71i_is_listed_in <https://clscor.io/entity/type/document_source> ;
+    skos:definition "ELTeC schema definition: \"describes a print source edition used as the source of the encoding which is not the first edition\"" ;
+    skos:inScheme <https://clscor.io/entity/type/document_source> ;
+    skos:prefLabel "print" .
+
+<https://clscor.io/entity/type/document_source/unspecified> a crm:E55_Type,
+        skos:Concept ;
+    rdfs:label "unspecified source" ;
+    crm:P71i_is_listed_in <https://clscor.io/entity/type/document_source> ;
+    skos:definition "ELTeC schema definition: \"the status of this reference has to be determined\"" ;
+    skos:inScheme <https://clscor.io/entity/type/document_source> ;
+    skos:prefLabel "unspecified" .
+
+<https://clscor.io/entity/type/document_source> a crm:E32_Authority_Document,
+        skos:ConceptScheme ;
+    rdfs:label "Document source types" ;
+    crm:P71_lists <https://clscor.io/entity/type/document_source/digital>,
+        <https://clscor.io/entity/type/document_source/first_edition>,
+        <https://clscor.io/entity/type/document_source/print>,
+        <https://clscor.io/entity/type/document_source/unspecified> ;
+    skos:hasTopConcept <https://clscor.io/entity/type/document_source/digital>,
+        <https://clscor.io/entity/type/document_source/first_edition>,
+        <https://clscor.io/entity/type/document_source/print>,
+        <https://clscor.io/entity/type/document_source/unspecified> .
+
+
