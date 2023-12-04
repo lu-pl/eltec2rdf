@@ -42,7 +42,7 @@ class CLSCorGenerator(RDFGenerator):
 
         uris: SimpleNamespace = uri_ns(
             "e39", "e35",
-            "x2", "x8", "x2_e42",
+            "x2", "x2_e42",
             "f1", "f2", "f3", "f27", "f28"
         )
 
@@ -54,6 +54,7 @@ class CLSCorGenerator(RDFGenerator):
         schema_uri: URIRef = mkuri(schema_level1)
         e55_eltec_title_uri: URIRef = mkuri("ELTeC title")
         e55_eltec_id_uri: URIRef = mkuri("ELTeC id")
+        x8_uri: URIRef = mkuri("ELTeC Level 1 Schema")
 
         f1_triples = plist(
             uris.f1,
@@ -81,7 +82,7 @@ class CLSCorGenerator(RDFGenerator):
             (crm.P1_is_identified_by, uris.x2_e42),
             (lrm.R4_embodies, uris.f2),
             (crmcls.Y2_has_format, vocab("TEI")),
-            (crmcls.Y3_adheres_to_schema, uris.x8)
+            (crmcls.Y3_adheres_to_schema, x8_uri)
         )
 
         x2_e42_triples = plist(
@@ -129,7 +130,7 @@ class CLSCorGenerator(RDFGenerator):
                 yield from f3_triples
 
         x8_triples = plist(
-            uris.x8,
+            x8_uri,
             (RDF.type, crmcls.X8_Schema),
             (RDFS.label, Literal("ELTeC Level 1 RNG Schema")),
             (crm.P1_is_identified_by, schema_uri),
