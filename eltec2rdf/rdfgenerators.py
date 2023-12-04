@@ -53,6 +53,7 @@ class CLSCorGenerator(RDFGenerator):
         schema_uri: URIRef = mkuri(schema_level1)
         e55_eltec_title_uri: URIRef = mkuri("ELTeC title")
         e55_eltec_id_uri: URIRef = mkuri("ELTeC id")
+        x1_uri: URIRef = mkuri("ELTeC")
         x8_uri: URIRef = mkuri("ELTeC Level 1 Schema")
 
         f1_triples = plist(
@@ -74,12 +75,19 @@ class CLSCorGenerator(RDFGenerator):
             (lrm.R4i_is_embodied_in, (uris.x2, *f3_uris))  # and f3s (todo)
         )
 
+        x1_triples = plist(
+            x1_uri,
+            (RDF.type, crmcls.X1_Corpus),
+            (lrm.R71_has_part, uris.x2)
+        )
+
         x2_triples = plist(
             uris.x2,
             (RDF.type, crmcls.X2_Corpus_Document),
             (RDFS.label, Literal(f"{self.bindings.work_title} [TEI Document]")),
             (crm.P1_is_identified_by, uris.x2_e42),
             (lrm.R4_embodies, uris.f2),
+            (lrm.R71i_is_part_of, x1_uri),
             (crmcls.Y2_has_format, vocab("TEI")),
             (crmcls.Y3_adheres_to_schema, x8_uri)
         )
@@ -218,6 +226,7 @@ class CLSCorGenerator(RDFGenerator):
         triples = itertools.chain(
             f1_triples,
             f2_triples,
+            x1_triples,
             x2_triples,
             x2_e42_triples,
             f3_triples(),
