@@ -153,3 +153,16 @@ def uri_ns(*names: str | tuple[str, str]) -> SimpleNamespace:
                     )
 
     return SimpleNamespace(**dict(_uris()))
+
+
+def get_e39_hash_value(data: list[dict]):
+    """Get a hash value for e39 assertions from author IDs.
+
+    Select the first id_value that has an id_type,
+    else return the first id_value.
+    """
+    for element in data:
+        if element["id_type"]:
+            return element["id_value"]
+
+    return data[0]["id_value"]
