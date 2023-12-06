@@ -10,7 +10,7 @@ from lodkit.types import _Triple
 from eltec2rdf.utils.utils import plist
 
 from rdflib import Literal, URIRef
-from rdflib.namespace import RDF, RDFS
+from rdflib.namespace import RDF, RDFS, OWL
 from clisn import crm, crmcls, lrm
 
 from eltec2rdf.rdfgenerator_abc import RDFGenerator
@@ -34,6 +34,7 @@ class CLSCorGenerator(RDFGenerator):
             for ids in self.bindings.work_ids
         ]
 
+        # used for E41 generation
         author_ids: dict[URIRef, dict] = {
             mkuri(): ids
             for ids in self.bindings.author_ids
@@ -193,14 +194,39 @@ class CLSCorGenerator(RDFGenerator):
             )
         )
 
-        e39_triples = plist(
-            uris.e39,
-            (RDF.type, crm.E39_Actor),
-            (RDFS.label, Literal(f"{self.bindings.author_name} [Actor]")),
-            (crm.P14i_performed, (uris.f27, uris.f28)),
-            # create e41s based on author ids(todo)
-            (crm.P1_is_identified_by, (*author_ids.keys(), uris.e39_e42))
-        )
+        def e39_triples() -> Iterator[_Triple]:
+            """E39 triple generator."""
+            _author_ids = list(
+                map(
+                    lambda x: x.id_value,
+                    self.bindings.author_ids
+                )
+            )
+
+            first_id, *rest_ids = (
+                _author_ids
+                if _author_ids
+                else (self.bindings.author_name,)
+            )
+
+            first_id_uri = mkuri(first_id)
+
+            e39_triples = plist(
+                first_id_uri,
+                (RDF.type, crm.E39_Actor),
+                (RDFS.label, Literal(f"{self.bindings.author_name} [Actor]")),
+                (crm.P14i_performed, (uris.f27, uris.f28)),
+                # create e41s based on author ids(todo)
+                (crm.P1_is_identified_by, (*author_ids.keys(), uris.e39_e42))
+            )
+
+            e39_same_as = (
+                (first_id_uri, OWL.sameAs, mkuri(_id))
+                for _id in rest_ids
+            )
+
+            yield from e39_triples
+            yield from e39_same_as
 
         e39_e42_triples = plist(
             uris.e39_e42,
@@ -214,7 +240,7 @@ class CLSCorGenerator(RDFGenerator):
             (crm.P1i_identifies, uris.e39)
         )
 
-        def e39_e41_triples():
+        def e39_e41_triples() -> Iterator[_Triple]:
             for e41_uri, author_id in author_ids.items():
                 e41_triples = plist(
                     e41_uri,
@@ -275,7 +301,7 @@ class CLSCorGenerator(RDFGenerator):
             f27_triples,
             f28_triples,
             e35_triples,
-            e39_triples,
+            e39_triples(),
             e39_e42_triples,
             e39_e41_triples(),
             e55_eltec_title_triples,
