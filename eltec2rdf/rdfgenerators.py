@@ -34,15 +34,16 @@ class CLSCorGenerator(RDFGenerator):
             for ids in self.bindings.work_ids
         ]
 
-        # used for E41 generation
         author_ids: dict[URIRef, dict] = {
-            mkuri(): ids
-            for ids in self.bindings.author_ids
+            mkuri(_id.id_value): _id
+            for _id in self.bindings.author_ids
         }
 
         uris: SimpleNamespace = uri_ns(
-            "e39", "e35", "e39_e42",
+            "e39", "e35",
+            ("e39_e41", f"{self.bindings.author_name} [E41]"),
             "x2", "x2_e42",
+            ("x1_eltec", "ELTeC"),
             "f1", "f2", "f3", "f27", "f28"
         )
 
@@ -57,7 +58,7 @@ class CLSCorGenerator(RDFGenerator):
         e55_eltec_id_uri: URIRef = mkuri("ELTeC ID")
         e55_eltec_author_name_uri: URIRef = mkuri("ELTeC Author Name")
 
-        x1_uri: URIRef = mkuri("ELTeC")
+        x1_uri: URIRef = mkuri(self.bindings.repo_id)
         x8_uri: URIRef = mkuri("ELTeC Level 1 Schema")
 
         f1_triples = plist(
@@ -82,7 +83,14 @@ class CLSCorGenerator(RDFGenerator):
         x1_triples = plist(
             x1_uri,
             (RDF.type, crmcls.X1_Corpus),
-            (lrm.R71_has_part, uris.x2)
+            (lrm.R71_has_part, uris.x2),
+            (crmcls.Y4i_is_subcorpus_of, uris.x1_eltec)
+        )
+
+        x1_eltec_triples = plist(
+            uris.x1_eltec,
+            (RDF.type, crmcls.X1_Corpus),
+            (crmcls.Y4_has_subcorpus, x1_uri)
         )
 
         x2_triples = plist(
@@ -127,7 +135,6 @@ class CLSCorGenerator(RDFGenerator):
         def f3_triples() -> Iterator[_Triple]:
             """Triple iterator for F3 generation based on work_ids."""
             for f3_uri, (e42_uri, work_data) in zip(f3_uris, work_ids.items()):
-
                 f3_triples = plist(
                     f3_uri,
                     (RDF.type, lrm.F3_Manifestation),
@@ -196,40 +203,35 @@ class CLSCorGenerator(RDFGenerator):
 
         def e39_triples() -> Iterator[_Triple]:
             """E39 triple generator."""
-            _author_ids = list(
-                map(
-                    lambda x: x.id_value,
-                    self.bindings.author_ids
-                )
-            )
-
             first_id, *rest_ids = (
-                _author_ids
-                if _author_ids
-                else (self.bindings.author_name,)
+                mkuri(self.bindings.author_name),
+                *author_ids.keys()
             )
 
-            first_id_uri = mkuri(first_id)
+            e42_uris = (
+                mkuri(f"{author_id.id_value} [E42]")
+                for _, author_id in author_ids.items()
+            )
 
             e39_triples = plist(
-                first_id_uri,
+                first_id,
                 (RDF.type, crm.E39_Actor),
                 (RDFS.label, Literal(f"{self.bindings.author_name} [Actor]")),
                 (crm.P14i_performed, (uris.f27, uris.f28)),
                 # create e41s based on author ids(todo)
-                (crm.P1_is_identified_by, (*author_ids.keys(), uris.e39_e42))
+                (crm.P1_is_identified_by, (uris.e39_e41, *e42_uris))
             )
 
             e39_same_as = (
-                (first_id_uri, OWL.sameAs, mkuri(_id))
+                (first_id, OWL.sameAs, _id)
                 for _id in rest_ids
             )
 
             yield from e39_triples
             yield from e39_same_as
 
-        e39_e42_triples = plist(
-            uris.e39_e42,
+        e39_e41_triples = plist(
+            uris.e39_e41,
             (RDF.type, crm.E41_Appellation),
             (RDFS.label, Literal("ELTeC Author Name [Appellation]")),
             (
@@ -240,10 +242,11 @@ class CLSCorGenerator(RDFGenerator):
             (crm.P1i_identifies, uris.e39)
         )
 
-        def e39_e41_triples() -> Iterator[_Triple]:
-            for e41_uri, author_id in author_ids.items():
-                e41_triples = plist(
-                    e41_uri,
+        def e39_e42_triples() -> Iterator[_Triple]:
+            for _, author_id in author_ids.items():
+                e42_uri = mkuri(f"{author_id.id_value} [E42]")
+                e42_triples = plist(
+                    e42_uri,
                     (RDF.type, crm.E42_Identifier),
                     (RDFS.label, Literal(f"{self.bindings.author_name} [ID]")),
                     (crm.P190_has_symbolic_content, Literal(f"{author_id.id_value}"))
@@ -252,12 +255,12 @@ class CLSCorGenerator(RDFGenerator):
                 with suppress(VocabLookupException):
                     vocab_uri = vocab(author_id.id_type)
                     yield (
-                        e41_uri,
+                        e42_uri,
                         crm.P2_has_type,
                         vocab_uri
                     )
 
-                yield from e41_triples
+                yield from e42_triples
 
         # todo: singleton (type)
         e55_eltec_title_triples = plist(
@@ -287,13 +290,14 @@ class CLSCorGenerator(RDFGenerator):
             e55_eltec_author_name_uri,
             (RDF.type, crm.E55_Type),
             (RDFS.label, Literal("ELTeC Author Name")),
-            (crm.P2i_is_type_of, uris.e39_e42)
+            (crm.P2i_is_type_of, uris.e39_e41)
         )
 
         triples = itertools.chain(
             f1_triples,
             f2_triples,
             x1_triples,
+            x1_eltec_triples,
             x2_triples,
             x2_e42_triples,
             x8_triples,
@@ -302,8 +306,8 @@ class CLSCorGenerator(RDFGenerator):
             f28_triples,
             e35_triples,
             e39_triples(),
-            e39_e42_triples,
-            e39_e41_triples(),
+            e39_e41_triples,
+            e39_e42_triples(),
             e55_eltec_title_triples,
             e55_eltec_id_triples,
             e55_eltec_author_name_triples,
