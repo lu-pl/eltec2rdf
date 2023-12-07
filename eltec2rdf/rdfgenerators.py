@@ -44,6 +44,7 @@ class CLSCorGenerator(RDFGenerator):
             ("e39_e41", f"{self.bindings.author_name} [E41]"),
             "x2", "x2_e42",
             ("x1_eltec", "ELTeC"),
+            ("x11_eltec", "ELTeC [X11]"),
             "f1", "f2", "f3", "f27", "f28"
         )
 
@@ -90,7 +91,9 @@ class CLSCorGenerator(RDFGenerator):
         x1_eltec_triples = plist(
             uris.x1_eltec,
             (RDF.type, crmcls.X1_Corpus),
-            (crmcls.Y4_has_subcorpus, x1_uri)
+            (crmcls.Y4_has_subcorpus, x1_uri),
+            # X1 -> P148 -> X2
+            (crm.P148_has_component, uris.x2)
         )
 
         x2_triples = plist(
@@ -101,7 +104,9 @@ class CLSCorGenerator(RDFGenerator):
             (lrm.R4_embodies, uris.f2),
             (lrm.R71i_is_part_of, x1_uri),
             (crmcls.Y2_has_format, vocab("TEI")),
-            (crmcls.Y3_adheres_to_schema, x8_uri)
+            (crmcls.Y3_adheres_to_schema, x8_uri),
+            # X2 -> P137 -> X11
+            (crm.P137_exemplifies, uris.x11_eltec)
         )
 
         x2_e42_triples = plist(
